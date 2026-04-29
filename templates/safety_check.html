@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --ink:    #0a0a0a;
+        --paper:  #f2f0eb;
+        --signal: #e63222;
+        --green:  #1a7a3f;
+        --amber:  #d97706;
+        --blue:   #2563eb;
+        --smoke:  #d6d3cc;
+        --dust:   #a8a49c;
+        --chalk:  #ffffff;
+        --mono: 'IBM Plex Mono', monospace;
+        --sans: 'IBM Plex Sans', sans-serif;
+        --display: 'Bebas Neue', sans-serif;
+    }
+
+    /* ── FONT OVERRIDE ────────────────────── */
+    * { font-family: var(--sans) !important; }
+
+    /* ── PAGE HEADER ──────────────────────── */
+    .dash-header {
+        margin-bottom: 28px; padding-bottom: 20px;
+        border-bottom: 1px solid rgba(10,10,10,0.09);
+        display: flex; align-items: flex-end; justify-content: space-between;
+        flex-wrap: wrap; gap: 16px;
+    }
+    .dash-eyebrow {
+        font-family: var(--mono) !important; font-size: 0.62rem;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--signal);
+        display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .dash-eyebrow::before { content: ''; width: 14px; height: 1px; background: var(--signal); }
+    .dash-title {
+        font-family: var(--display) !important; font-size: 2.4rem;
+        color: var(--ink); letter-spacing: 1px; line-height: 1;
+    }
+
+    /* ── FILTER BAR ───────────────────────── */
+    .filter-bar {
+        display: flex; align-items: center; gap: 0;
+        background: var(--chalk);
+        border: 1px solid rgba(10,10,10,0.09);
+        margin-bottom: 24px; overflow: hidden;
+        flex-wrap: wrap;
+    }
+    .filter-label {
+        font-family: var(--mono) !important; font-size: 0.6rem;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--dust);
+        padding: 14px 18px;
+        border-right: 1px solid rgba(10,10,10,0.07);
+        white-space: nowrap; background: rgba(10,10,10,0.02);
+    }
+    .filter-select-wrap { position: relative; flex: 1; min-width: 200px; }
+    .filter-select-wrap::after {
+        content: '\f107'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+        position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+        color: var(--dust); font-size: 0.72rem; pointer-events: none;
+    }
+    .filter-bar select {
+        width: 100%; padding: 14px 36px 14px 18px;
+        font-family: var(--mono) !important; font-size: 0.7rem;
+        letter-spacing: 0.8px;
+        background: transparent; border: none;
+        border-right: 1px solid rgba(10,10,10,0.07);
+        color: var(--ink); outline: none; appearance: none; cursor: pointer;
+        transition: background 0.15s;
+    }
+    .filter-bar select:hover { background: rgba(10,10,10,0.02); }
+    .filter-bar select:last-child { border-right: none; }
+    .filter-bar select option { font-family: var(--mono); background: var(--chalk); }
+
+    /* ── CHART GRID ───────────────────────── */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    /* Layout spans */
+    #typeChartWrapper    { grid-column: 1 / 2; grid-row: 1 / 3; }
+    #trendChartWrapper   { grid-column: 2 / -1; }
+    #variationChartWrapper { grid-column: 2 / 3; }
+    #safetyChartWrapper  { grid-column: 3 / 4; }
+    #severityChartWrapper { grid-column: 1 / 2; }
+
+    /* ── CHART CELL ───────────────────────── */
+    .chart-container {
+        background: var(--chalk);
+        border: 1px solid rgba(10,10,10,0.09);
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        animation: cellIn 0.4s ease both;
+        transition: box-shadow 0.2s;
+        min-height: 300px;
+    }
+    .chart-container:hover {
+        box-shadow: 4px 4px 0 rgba(10,10,10,0.06);
+    }
+    @keyframes cellIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .chart-container:nth-child(1){animation-delay:0.05s}
+    .chart-container:nth-child(2){animation-delay:0.10s}
+    .chart-container:nth-child(3){animation-delay:0.15s}
+    .chart-container:nth-child(4){animation-delay:0.20s}
+    .chart-container:nth-child(5){animation-delay:0.25s}
+
+    /* Cell header bar */
+    .chart-header {
+        background: var(--ink); padding: 12px 18px;
+        border-bottom: 2px solid var(--signal);
+        display: flex; align-items: center; gap: 10px;
+        flex-shrink: 0;
+    }
+    .chart-header-dot { width:6px; height:6px; background:var(--signal); border-radius:50%; animation:blink 1.4s step-start infinite; }
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+    .chart-header-title {
+        font-family: var(--mono) !important; font-size: 0.62rem;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--chalk);
+    }
+
+    /* Canvas wrapper */
+    .chart-body { flex: 1; padding: 20px; position: relative; min-height: 0; }
+    .chart-body canvas { width: 100% !important; height: 100% !important; }
+
+    /* ── RESPONSIVE ───────────────────────── */
+    @media(max-width:1100px) {
+        .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        #typeChartWrapper, #trendChartWrapper,
+        #variationChartWrapper, #safetyChartWrapper,
+        #severityChartWrapper {
+            grid-column: span 1 !important; grid-row: auto !important;
+        }
+        #typeChartWrapper { grid-column: 1 / -1 !important; }
+    }
+    @media(max-width:680px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .chart-container { grid-column: span 1 !important; }
+        .filter-bar { flex-direction: column; }
+        .filter-select-wrap { min-width: 100%; }
+        .filter-bar select { border-right: none; border-bottom: 1px solid rgba(10,10,10,0.07); }
+    }
+</style>
+
+<!-- PAGE HEADER -->
+<div class="dash-header">
+    <div>
+        <div class="dash-eyebrow">Intelligence Overview</div>
+        <div class="dash-title">Safety Data Dashboard</div>
+    </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+    <span class="filter-label">Filters</span>
+    <div class="filter-select-wrap">
+        <select id="districtFilter">
+            <option value="">All Districts</option>
+            {% for district in districts %}
+                <option value="{{ district }}" {% if selected_district == district %}selected{% endif %}>{{ district }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filter-select-wrap">
+        <select id="yearFilter">
+            <option value="">All Years</option>
+            {% for year in years %}
+                <option value="{{ year }}" {% if selected_year|slugify == year|slugify %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- CHART GRID -->
+<div class="dashboard-grid">
+
+    <div id="typeChartWrapper" class="chart-container">
+        <div class="chart-header"><span class="chart-header-dot"></span><span class="chart-header-title">Crime Type Distribution</span></div>
+        <div class="chart-body"><canvas id="typeChart"></canvas></div>
+    </div>
+
+    <div id="trendChartWrapper" class="chart-container">
+        <div class="chart-header"><span class="chart-header-dot"></span><span class="chart-header-title">Long-Term Crime Trend</span></div>
+        <div class="chart-body"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <div id="variationChartWrapper" class="chart-container">
+        <div class="chart-header"><span class="chart-header-dot"></span><span class="chart-header-title">Annual Crime Breakdown</span></div>
+        <div class="chart-body"><canvas id="variationChart"></canvas></div>
+    </div>
+
+    <div id="safetyChartWrapper" class="chart-container">
+        <div class="chart-header"><span class="chart-header-dot"></span><span class="chart-header-title">Safety Classification</span></div>
+        <div class="chart-body"><canvas id="safetyChart"></canvas></div>
+    </div>
+
+    <div id="severityChartWrapper" class="chart-container">
+        <div class="chart-header"><span class="chart-header-dot"></span><span class="chart-header-title">Top Districts — Intervention Required</span></div>
+        <div class="chart-body"><canvas id="severityChart"></canvas></div>
+    </div>
+
+</div>
+
+<script>
+    /* ── Chart.js defaults ── */
+    Chart.defaults.color           = '#5a5750';
+    Chart.defaults.borderColor     = 'rgba(10,10,10,0.07)';
+    Chart.defaults.font.family     = 'IBM Plex Mono';
+    Chart.defaults.font.size       = 11;
+    Chart.defaults.plugins.tooltip.backgroundColor = '#0a0a0a';
+    Chart.defaults.plugins.tooltip.titleColor       = '#f2f0eb';
+    Chart.defaults.plugins.tooltip.bodyColor        = '#a8a49c';
+    Chart.defaults.plugins.tooltip.cornerRadius     = 0;
+    Chart.defaults.plugins.tooltip.padding          = 10;
+    Chart.defaults.plugins.title.display            = false;
+
+    const P = {
+        ink:    '#0a0a0a',
+        signal: '#e63222',
+        green:  '#1a7a3f',
+        amber:  '#d97706',
+        blue:   '#2563eb',
+        dust:   '#a8a49c',
+        palette: ['#0a0a0a','#e63222','#1a7a3f','#d97706','#2563eb','#7c3aed','#a8a49c']
+    };
+
+    const scaleDefaults = {
+        grid: { color: 'rgba(10,10,10,0.05)', drawBorder: false },
+        ticks: { color: '#a8a49c', font: { family: 'IBM Plex Mono', size: 10 }, padding: 8 },
+        border: { display: false }
+    };
+
+    /* 1. Donut — Crime Type */
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ crime_types|safe }},
+            datasets: [{ data: {{ crime_counts|safe }}, backgroundColor: P.palette, borderWidth: 3, borderColor: '#f2f0eb' }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16, color: '#5a5750', font: { family: 'IBM Plex Mono', size: 10 } } } }
+        }
+    });
+
+    /* 2. Line — Crime Trend */
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels|safe }},
+            datasets: [{
+                label: 'Total Incidents',
+                data: {{ trend_values|safe }},
+                borderColor: P.signal,
+                backgroundColor: 'rgba(230,50,34,0.06)',
+                pointBackgroundColor: P.signal,
+                pointBorderColor: '#f2f0eb',
+                pointRadius: 4, pointHoverRadius: 6,
+                fill: true, tension: 0.3, borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: scaleDefaults, y: { ...scaleDefaults, beginAtZero: true, ticks: { ...scaleDefaults.ticks, callback: v => v.toLocaleString() } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    /* 3. Stacked Bar — Yearly Variation */
+    const labels    = {{ yearly_labels|safe }};
+    const yearlyVals= {{ yearly_values|safe }};
+    const datasets  = [];
+    let ci = 0;
+    for (const crime in yearlyVals) {
+        datasets.push({ label: crime, data: yearlyVals[crime], backgroundColor: P.palette[ci++ % P.palette.length], borderRadius: 0 });
+    }
+    new Chart(document.getElementById('variationChart'), {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false, stacked: true,
+            scales: { x: { ...scaleDefaults, stacked: true }, y: { ...scaleDefaults, stacked: true, beginAtZero: true } },
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true, color: '#5a5750', font: { family: 'IBM Plex Mono', size: 9 }, padding: 12 } } }
+        }
+    });
+
+    /* 4. Pie — Safety Classification */
+    new Chart(document.getElementById('safetyChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ safety_labels|safe }},
+            datasets: [{ data: {{ safety_values|safe }}, backgroundColor: [P.green, P.signal], borderColor: '#f2f0eb', borderWidth: 3 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: '#5a5750', font: { family: 'IBM Plex Mono', size: 10 }, padding: 16 } } }
+        }
+    });
+
+    /* 5. Horizontal Bar — Top Districts */
+    new Chart(document.getElementById('severityChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ top_districts_labels|safe }},
+            datasets: [{ label: 'Severe Crimes', data: {{ top_districts_values|safe }}, backgroundColor: P.signal, borderRadius: 0 }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { ...scaleDefaults, beginAtZero: true },
+                y: { ...scaleDefaults, grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    /* ── Filter handler ── */
+    function updateFilters() {
+        const district = document.getElementById('districtFilter').value;
+        const year     = document.getElementById('yearFilter').value;
+        let url = '?';
+        if (district) url += `district=${district}&`;
+        if (year)     url += `year=${year}`;
+        window.location.href = url;
+    }
+    document.getElementById('districtFilter').addEventListener('change', updateFilters);
+    document.getElementById('yearFilter').addEventListener('change', updateFilters);
+</script>
+
+{% endblock content %}

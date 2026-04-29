@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeRoute — Case Registry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg:       #fff9f5;
+            --white:    #ffffff;
+            --ink:      #1a1a2e;
+            --muted:    #888888;
+            --border:   #ffe4d0;
+            --orange:   #ff6b35;
+            --orange-dk:#e85520;
+            --orange-lt:#fff5f0;
+            --teal:     #0d9488;
+            --amber:    #f59e0b;
+            --rose:     #f43f5e;
+            --gold-text:#f7c59f;
+        }
+
+        /* Base Typography */
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.75;
+        }
+
+        /* ── TICKER BAR ────────────────────── */
+        .ticker-bar {
+            background: var(--ink);
+            color: var(--gold-text);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            padding: 7px 0;
+            overflow: hidden;
+            position: fixed;
+            top: 0; width: 100%; z-index: 101;
+        }
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 25s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ── NAVBAR ────────────────────────── */
+        .navbar {
+            height: 60px;
+            background: rgba(255, 252, 248, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; position: sticky; top: 28px; z-index: 100;
+        }
+        .brand-logo {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: white; text-decoration: none; font-weight: 700;
+        }
+        .nav-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem; letter-spacing: 1px;
+            text-transform: uppercase; color: var(--muted);
+        }
+
+        /* ── PAGE LAYOUT ───────────────────── */
+        .container { padding: 56px 48px; max-width: 1400px; margin: auto; }
+        
+        .page-header { margin-bottom: 40px; }
+        .page-title {
+            font-size: 3.2rem; font-weight: 700; letter-spacing: -2px;
+            color: var(--ink); line-height: 1; margin-bottom: 8px;
+        }
+        .live-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 4px 12px; border-radius: 50px; border: 1.5px solid #ffd4bc;
+            font-family: 'Space Mono', monospace; font-size: 0.55rem; text-transform: uppercase;
+        }
+        .dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; animation: blink 1.8s step-start infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* ── CASE CARDS / TABLES ───────────── */
+        .card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: 16px; overflow: hidden; margin-bottom: 40px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--bg); padding: 16px 24px; text-align: left;
+            font-family: 'Space Mono', monospace; font-size: 0.58rem;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+        td { padding: 20px 24px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        
+        .mono-data { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); }
+
+        /* ── COMPONENTS ────────────────────── */
+        .btn-sr {
+            font-family: 'Space Mono', monospace; font-size: 0.6rem;
+            text-transform: uppercase; padding: 10px 18px; border-radius: 8px;
+            border: none; cursor: pointer; transition: 0.2s; font-weight: 700;
+        }
+        .btn-primary { background: var(--ink); color: var(--gold-text); }
+        .btn-primary:hover { transform: translateY(-1px); background: var(--ink2); }
+        
+        .btn-status { color: white; margin-right: 4px; }
+        .btn-solved { background: var(--teal); }
+        .btn-ongoing { background: var(--amber); }
+        .btn-unsolved { background: var(--rose); }
+
+        .sr-input {
+            padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; outline: none;
+        }
+        .sr-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+
+        video { border-radius: 10px; border: 1px solid var(--border); width: 140px; }
+
+        @media(max-width: 768px) {
+            .container { padding: 32px 20px; }
+            .page-title { font-size: 2.2rem; }
+            th { display: none; }
+            td { display: block; padding: 10px 24px; border: none; }
+            td::before { content: attr(data-label); font-family: 'Space Mono'; font-size: 0.55rem; color: var(--muted); display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticker-bar">
+        <div class="ticker-content">
+            SECURE PORTAL ACTIVE • LIVE MONITORING ENABLED • SYSTEM STATUS: OPTIMAL • OFFICER ID: {{ request.user.username|upper }}
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <a href="/" class="brand-logo">SR</a>
+        <div class="nav-label">Officer Command Center</div>
+    </nav>
+
+    <div class="container">
+        <header class="page-header">
+            <div class="live-badge"><span class="dot"></span> Approved Reports — Live</div>
+            <h1 class="page-title">Crime Registry</h1>
+        </header>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Evidence</th>
+                        <th>Coordinates</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="case-list">
+                    </tbody>
+            </table>
+        </div>
+
+        <header class="page-header" style="margin-top: 64px;">
+            <div class="live-badge" style="border-color: var(--border);">Active Assignments</div>
+            <h2 class="page-title">Personal Caseload</h2>
+        </header>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Case Detail</th>
+                        <th>Status Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in assigned_cases %}
+                    <tr>
+                        <td data-label="ID" class="mono-data">#{{ case.id }}</td>
+                        <td data-label="Case Detail">
+                            <strong style="display:block; margin-bottom:4px;">{{ case.crime_type }}</strong>
+                            <span style="color:var(--muted); font-size:0.85rem;">{{ case.description|truncatechars:100 }}</span>
+                        </td>
+                        <td data-label="Status Update">
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <select id="status-update-{{ case.id }}" class="sr-input">
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Solved">Solved</option>
+                                </select>
+                                <button class="btn-sr btn-primary" onclick="updateStatus({{ case.id }})">Update</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" style="text-align:center; padding:48px; font-family:'Space Mono'; color:var(--muted);">No active cases assigned</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function fetchApprovedReports() {
+            fetch('/api/get_approved_reports/')
+                .then(r => r.json())
+                .then(data => {
+                    const list = document.getElementById('case-list');
+                    if (data.length === 0) {
+                        list.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:48px; font-family:\'Space Mono\'; color:var(--muted);">Queue Empty</td></tr>';
+                        return;
+                    }
+                    list.innerHTML = data.map(r => `
+                        <tr>
+                            <td data-label="Type">
+                                <strong>${r.crime_type}</strong>
+                                <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${r.description}</div>
+                            </td>
+                            <td data-label="Evidence">
+                                <video controls><source src="${r.video_url}" type="video/mp4"></video>
+                            </td>
+                            <td data-label="Coordinates" class="mono-data">
+                                ${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}
+                            </td>
+                            <td data-label="Actions">
+                                <button class="btn-sr btn-status btn-solved" onclick="updateCaseStatus(${r.id},'Solved')">Solve</button>
+                                <button class="btn-sr btn-status btn-ongoing" onclick="updateCaseStatus(${r.id},'Ongoing')">Track</button>
+                                <button class="btn-sr btn-status btn-unsolved" onclick="updateCaseStatus(${r.id},'Unsolved')">Alert</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                });
+        }
+
+        function updateStatus(caseId) {
+            const newStatus = document.getElementById(`status-update-${caseId}`).value;
+            fetch('/api/update_status/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ report_id: caseId, status: newStatus })
+            })
+            .then(r => r.json())
+            .then(data => { alert(data.message); location.reload(); });
+        }
+
+        fetchApprovedReports();
+    </script>
+</body>
+</html>

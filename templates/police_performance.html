@@ -1,0 +1,331 @@
+{% extends "police(base).html" %}
+{% load static %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<style>
+    :root {
+        --ink:    #0a0a0a;
+        --paper:  #f2f0eb;
+        --signal: #e63222;
+        --green:  #1a7a3f;
+        --amber:  #d97706;
+        --blue:   #2563eb;
+        --smoke:  #d6d3cc;
+        --dust:   #a8a49c;
+        --chalk:  #ffffff;
+        --mono: 'IBM Plex Mono', monospace;
+        --sans: 'IBM Plex Sans', sans-serif;
+        --display: 'Bebas Neue', sans-serif;
+    }
+
+    /* ── PAGE HEADER ──────────────────────── */
+    .perf-header {
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(10,10,10,0.09);
+        display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .perf-eyebrow {
+        font-family: var(--mono); font-size: 0.62rem; letter-spacing: 2px;
+        text-transform: uppercase; color: var(--blue);
+        display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .perf-eyebrow::before { content: ''; width: 14px; height: 1px; background: var(--blue); }
+    .perf-title {
+        font-family: var(--display); font-size: 2.4rem;
+        color: var(--ink); letter-spacing: 1px; line-height: 1;
+    }
+    .officer-id-strip {
+        font-family: var(--mono); font-size: 0.65rem;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        color: var(--dust); text-align: right;
+    }
+    .officer-id-strip strong { color: var(--ink); }
+
+    /* ── CHART GRID ───────────────────────── */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .chart-cell {
+        background: var(--chalk);
+        border: 1px solid rgba(10,10,10,0.09);
+        padding: 0;
+        overflow: hidden;
+        animation: cellIn 0.4s ease both;
+    }
+    @keyframes cellIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .chart-cell:nth-child(1){animation-delay:0.05s}
+    .chart-cell:nth-child(2){animation-delay:0.10s}
+    .chart-cell:nth-child(3){animation-delay:0.15s}
+    .chart-cell:nth-child(4){animation-delay:0.20s}
+
+    .chart-cell-header {
+        background: var(--ink); padding: 12px 18px;
+        border-bottom: 2px solid var(--blue);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .chart-cell-title {
+        font-family: var(--mono); font-size: 0.65rem;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--chalk);
+    }
+    .chart-cell-body { padding: 20px 18px; }
+    .chart-cell canvas { width: 100% !important; height: 240px !important; max-height: 240px; }
+
+    /* Rating cell */
+    .rating-cell {
+        background: var(--chalk);
+        border: 1px solid rgba(10,10,10,0.09);
+        padding: 0; overflow: hidden;
+        display: flex; flex-direction: column;
+        animation: cellIn 0.4s ease 0.20s both;
+    }
+    .rating-body {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 32px 20px;
+        gap: 12px;
+    }
+    .stars {
+        display: flex; gap: 6px;
+        justify-content: center;
+    }
+    .star {
+        font-size: 3.5rem; line-height: 1;
+        color: rgba(10,10,10,0.08);
+        transition: transform 0.2s;
+    }
+    .star.full { color: #f59e0b; }
+    .star.partial {
+        background: linear-gradient(
+            90deg,
+            #f59e0b {{ partial_percent }}%,
+            rgba(10,10,10,0.08) {{ partial_percent }}%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .star:hover { transform: scale(1.12); }
+    @keyframes starIn { from{opacity:0;transform:scale(0.6)} to{opacity:1;transform:scale(1)} }
+    .star.animate { animation: starIn 0.4s ease forwards; }
+
+    .rating-score {
+        font-family: var(--display); font-size: 2.8rem;
+        color: var(--ink); letter-spacing: -1px; line-height: 1;
+    }
+    .rating-max {
+        font-family: var(--mono); font-size: 0.65rem;
+        letter-spacing: 1px; color: var(--dust); text-transform: uppercase;
+    }
+
+    /* Gauge text */
+    .gauge-text-row {
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px; padding: 0 0 12px;
+    }
+    .gauge-label {
+        font-family: var(--mono); font-size: 0.6rem;
+        letter-spacing: 1px; text-transform: uppercase; color: var(--dust);
+    }
+    .gauge-value {
+        font-family: var(--mono); font-size: 0.78rem;
+        font-weight: 500; color: var(--ink);
+    }
+
+    @media(max-width:768px) {
+        .charts-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<!-- HEADER -->
+<div class="perf-header">
+    <div>
+        <div class="perf-eyebrow">Officer Analytics</div>
+        <div class="perf-title">Performance Report</div>
+    </div>
+    <div class="officer-id-strip">
+        <div>{{ officer_profile.user.username }}</div>
+        <div>Badge &nbsp;<strong>{{ officer_profile.badge_id }}</strong></div>
+    </div>
+</div>
+
+<!-- CHARTS GRID -->
+<div class="charts-grid">
+
+    <!-- Case Counts -->
+    <div class="chart-cell">
+        <div class="chart-cell-header">
+            <i class="fas fa-bar-chart" style="color:var(--blue);font-size:0.72rem;"></i>
+            <span class="chart-cell-title">Case Counts</span>
+        </div>
+        <div class="chart-cell-body">
+            <canvas id="casesBarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="chart-cell">
+        <div class="chart-cell-header">
+            <i class="fas fa-chart-pie" style="color:var(--blue);font-size:0.72rem;"></i>
+            <span class="chart-cell-title">Status Distribution</span>
+        </div>
+        <div class="chart-cell-body">
+            <canvas id="statusPieChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Avg Response Gauge -->
+    <div class="chart-cell">
+        <div class="chart-cell-header">
+            <i class="fas fa-clock" style="color:var(--blue);font-size:0.72rem;"></i>
+            <span class="chart-cell-title">Avg. Response vs SLA</span>
+        </div>
+        <div class="chart-cell-body">
+            <canvas id="responseGaugeChart"></canvas>
+            <div class="gauge-text-row">
+                <span class="gauge-label">Avg Response</span>
+                <span class="gauge-value" id="avgTimeValue"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Officer Rating -->
+    <div class="rating-cell">
+        <div class="chart-cell-header">
+            <i class="fas fa-star" style="color:var(--blue);font-size:0.72rem;"></i>
+            <span class="chart-cell-title">Officer Rating</span>
+        </div>
+        <div class="rating-body">
+            <div class="stars">
+                {% for _ in "12345"|make_list %}
+                    {% if forloop.counter <= full_stars %}
+                        <span class="star full">&#9733;</span>
+                    {% elif forloop.counter == full_stars|add:1 and partial_percent > 0 %}
+                        <span class="star partial">&#9733;</span>
+                    {% else %}
+                        <span class="star">&#9733;</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="rating-score">{{ officer_rating|floatformat:1 }}</div>
+            <div class="rating-max">out of 5.0</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Star entry animation
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.star').forEach((star, i) => {
+            setTimeout(() => star.classList.add('animate'), i * 150);
+        });
+    });
+
+    const total       = {{ performance.total|default:0 }};
+    const pending     = {{ performance.pending|default:0 }};
+    const investigating = {{ performance.investigating|default:0 }};
+    const resolved    = {{ performance.resolved|default:0 }};
+
+    // ── Bar Chart ──────────────────────────
+    new Chart(document.getElementById('casesBarChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Total', 'Pending', 'Investigating', 'Resolved'],
+            datasets: [{
+                data: [total, pending, investigating, resolved],
+                backgroundColor: ['#0a0a0a', '#d97706', '#2563eb', '#1a7a3f'],
+                borderRadius: 0,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 900, easing: 'easeOutQuart' },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision:0, font: { family: 'IBM Plex Mono', size: 10 }, color: '#a8a49c' }, grid: { color: 'rgba(10,10,10,0.05)' }, border: { display: false } },
+                x: { ticks: { font: { family: 'IBM Plex Mono', size: 10 }, color: '#a8a49c' }, grid: { display: false }, border: { display: false } }
+            },
+            plugins: {
+                tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' cases' }, titleFont: { family: 'IBM Plex Mono' }, bodyFont: { family: 'IBM Plex Mono' } },
+                legend: { display: false }
+            }
+        }
+    });
+
+    // ── Pie Chart ──────────────────────────
+    new Chart(document.getElementById('statusPieChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ['Pending', 'Investigating', 'Resolved'],
+            datasets: [{
+                data: [pending, investigating, resolved],
+                backgroundColor: ['#d97706', '#2563eb', '#1a7a3f'],
+                borderWidth: 2, borderColor: '#f2f0eb'
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: { animateScale: true, duration: 800 },
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { family: 'IBM Plex Mono', size: 10 }, color: '#5a5750', padding: 16, usePointStyle: true, pointStyleWidth: 8 } }
+            }
+        }
+    });
+
+    // ── Gauge Chart ────────────────────────
+    const avgSecs  = {{ performance.avg_response_secs|default:0 }};
+    const hours    = Math.floor(avgSecs / 3600);
+    const minutes  = Math.floor((avgSecs % 3600) / 60);
+    const seconds  = Math.floor(avgSecs % 60);
+    const avgDisplay = `${hours}h ${minutes}m ${seconds}s`;
+    const avgHrs   = avgSecs / 3600;
+
+    let gaugeColor = '#1a7a3f';
+    if (avgHrs > 3 && avgHrs <= 6)  gaugeColor = '#d97706';
+    else if (avgHrs > 6)             gaugeColor = '#e63222';
+
+    const maxSecs  = 4 * 3600;
+    const fill     = Math.max(0, Math.min(1, (maxSecs - avgSecs) / maxSecs));
+
+    const arrowPlugin = {
+        id: 'arrowPlugin',
+        afterDraw(chart) {
+            const { ctx, chartArea: { left, right, bottom } } = chart;
+            const cx = (left + right) / 2, cy = bottom;
+            const arc = chart.getDatasetMeta(0).data[0];
+            const r   = (arc.outerRadius + arc.innerRadius) / 2;
+            const angle = arc.endAngle;
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle);
+            ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(r,0); ctx.lineTo(0,5); ctx.closePath();
+            ctx.fillStyle = '#0a0a0a'; ctx.fill(); ctx.restore();
+        }
+    };
+
+    new Chart(document.getElementById('responseGaugeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Response', 'Remaining'],
+            datasets: [{ data: [fill, 1-fill], backgroundColor: [gaugeColor, 'rgba(10,10,10,0.07)'], borderWidth: 0, cutout: '78%' }]
+        },
+        options: {
+            responsive: true, rotation: -90, circumference: 180,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: () => avgDisplay }, titleFont: { family:'IBM Plex Mono' }, bodyFont: { family:'IBM Plex Mono' } },
+                datalabels: { display: false }
+            },
+            animation: { animateRotate: true, duration: 1000 }
+        },
+        plugins: [arrowPlugin]
+    });
+
+    document.getElementById('avgTimeValue').textContent = avgDisplay;
+</script>
+
+{% endblock %}

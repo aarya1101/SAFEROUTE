@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeRoute — SHO Portal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            /* SafeRoute Design System Colors */
+            --bg:       #fff9f5;
+            --white:    #ffffff;
+            --ink:      #1a1a2e;
+            --ink2:     #2d2d4e;
+            --muted:    #888888;
+            --border:   #ffe4d0;
+            --orange:   #ff6b35;
+            --orange-dk:#e85520;
+            --orange-lt:#fff5f0;
+            --teal:     #0d9488;
+            --gold-text:#f7c59f;
+            
+            --sidebar-w: 260px;
+            --topbar-h:  60px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── TICKER BAR ────────────────────── */
+        .ticker-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 28px;
+            background: var(--ink);
+            color: var(--gold-text);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            z-index: 400;
+        }
+        .ticker-wrap {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 25s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ── NAVBAR ────────────────────────── */
+        .g-navbar {
+            position: fixed;
+            top: 28px; left: 0; right: 0;
+            height: var(--topbar-h);
+            background: rgba(255, 252, 248, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px;
+            z-index: 300;
+        }
+        .navbar-brand {
+            display: flex; align-items: center; gap: 12px;
+            text-decoration: none;
+        }
+        .brand-logo {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem;
+        }
+        .brand-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 1.2rem;
+            color: var(--ink); letter-spacing: -1px;
+        }
+
+        /* ── SIDEBAR (DASHBOARD) ────────────── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-w); height: 100vh;
+            background: var(--ink);
+            padding-top: calc(var(--topbar-h) + 28px);
+            z-index: 200;
+            transition: transform var(--transition);
+        }
+        .sidebar-section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem; letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #2e2e3e; padding: 24px 20px 10px;
+        }
+        .sidebar-nav { list-style:none; }
+        .sidebar-nav li a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem; text-transform: uppercase;
+            color: var(--muted); text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .sidebar-nav li a:hover {
+            color: var(--white); background: rgba(255, 255, 255, 0.04);
+        }
+        .sidebar-nav li.active a {
+            color: var(--white);
+            background: rgba(255, 107, 53, 0.08);
+            border-left: 2px solid var(--orange);
+        }
+        .sidebar-nav li.active a i { color: var(--orange); }
+
+        /* ── MAIN WRAPPER ───────────────────── */
+        .main-wrapper {
+            flex: 1;
+            margin-left: var(--sidebar-w);
+            padding-top: calc(var(--topbar-h) + 28px);
+            transition: margin-left var(--transition);
+        }
+        .page-header {
+            padding: 24px 36px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .breadcrumb {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem; letter-spacing: 1px;
+            text-transform: uppercase; color: var(--muted);
+        }
+        .breadcrumb span { color: var(--ink); font-weight: 700; }
+
+        .main-content {
+            padding: 36px 40px;
+            animation: contentFade 0.38s ease forwards;
+        }
+        @keyframes contentFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sho-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem; letter-spacing: 1px;
+            background: var(--orange-lt); color: var(--orange);
+            padding: 4px 10px; border-radius: 50px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-logout {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem; text-transform: uppercase;
+            background: var(--ink); color: var(--white);
+            padding: 8px 16px; border-radius: 8px;
+            text-decoration: none; transition: 0.2s;
+        }
+        .btn-logout:hover { transform: translateY(-1px); background: var(--rose); }
+
+        @media(max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-wrapper { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticker-bar">
+        <div class="ticker-wrap">
+            ACTIVE PATROL SESSIONS: 14 • EMERGENCY SOS ALERTS: 0 • HIGH RISK ZONES MONITORED: 8 • STATION COMMAND STATUS: ONLINE 
+        </div>
+    </div>
+
+    <nav class="g-navbar">
+        <a href="{% url 'index' %}" class="navbar-brand">
+            <div class="brand-logo"><i class="fas fa-shield-alt"></i></div>
+            <span class="brand-text">SafeRoute</span>
+        </a>
+        <div class="d-flex align-items:center; gap:16px;">
+            <span class="sho-badge">SHO COMMAND</span>
+            <a href="{% url 'index' %}" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+
+    <aside class="sidebar">
+        <div class="sidebar-section-label">Operations</div>
+        <ul class="sidebar-nav">
+            <li class="{% if request.resolver_match.url_name == 'sho_dashboard' %}active{% endif %}">
+                <a href="{% url 'sho_dashboard' %}"><i class="fas fa-th-large"></i> Dashboard</a>
+            </li>
+            <li class="{% if request.resolver_match.url_name == 'sho_approved_cases' %}active{% endif %}">
+                <a href="{% url 'sho_approved_cases' %}"><i class="fas fa-check-circle"></i> Approved Cases</a>
+            </li>
+            <li class="{% if request.resolver_match.url_name == 'monthly_crime_predictions' %}active{% endif %}">
+                <a href="{% url 'monthly_crime_predictions' %}"><i class="fas fa-chart-line"></i> Predictions</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-section-label">System</div>
+        <ul class="sidebar-nav">
+            <li><a href="{% url 'index' %}"><i class="fas fa-sign-out-alt"></i> Terminal Exit</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-wrapper">
+        <div class="page-header">
+            <div class="breadcrumb">
+                SafeRoute / SHO / <span>Dashboard</span>
+            </div>
+        </div>
+
+        <main class="main-content">
+            {% block content %}{% endblock content %}
+        </main>
+    </div>
+
+</body>
+</html>

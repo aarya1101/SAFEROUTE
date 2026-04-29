@@ -1,0 +1,301 @@
+{% extends "police(base).html" %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+        --bg:       #fff9f5;
+        --white:    #ffffff;
+        --ink:      #1a1a2e;
+        --ink2:     #2d2d4e;
+        --muted:    #888888;
+        --border:   #ffe4d0;
+        --orange:   #ff6b35;
+        --orange-dk:#e85520;
+        --orange-lt:#fff5f0;
+        --teal:     #0d9488;
+        --amber:    #f59e0b;
+        --rose:     #f43f5e;
+        --green:    #10b981;
+        --gold-text:#f7c59f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── ALERTS ──────────────────────────────── */
+    .sr-alert {
+        font-family: 'Space Mono', monospace; font-size: 0.75rem;
+        padding: 16px 24px; margin-bottom: 32px; border-radius: 12px;
+        display: flex; align-items: center; gap: 12px; border: 1px solid var(--border);
+    }
+    .sr-alert-danger { background: var(--orange-lt); color: var(--rose); border-color: rgba(244, 63, 94, 0.2); }
+    .sr-alert-warn { background: #fffbeb; color: var(--amber); border-color: rgba(245, 158, 11, 0.2); }
+
+    /* ── OFFICER HEADER ──────────────────────── */
+    .officer-hero {
+        background: var(--ink); border-radius: 16px; padding: 40px;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 40px; position: relative; overflow: hidden;
+    }
+    .hero-grid {
+        position: absolute; inset: 0; opacity: 0.05; pointer-events: none;
+        background-image: linear-gradient(var(--gold-text) 1px, transparent 1px), linear-gradient(90deg, var(--gold-text) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    .officer-eyebrow {
+        font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 12px;
+    }
+    .officer-name {
+        font-size: 3rem; font-weight: 700; color: var(--white); letter-spacing: -2px; line-height: 1; margin-bottom: 16px;
+    }
+    .officer-meta-row { display: flex; gap: 24px; font-family: 'Space Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--gold-text); }
+    .officer-meta-row span { color: var(--white); font-weight: 700; }
+
+    .live-status {
+        background: rgba(16, 185, 129, 0.1); border: 1px solid var(--green);
+        padding: 6px 14px; border-radius: 50px; color: var(--green);
+        font-family: 'Space Mono', monospace; font-size: 0.6rem; font-weight: 700;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .status-pulse { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    /* ── METRICS ─────────────────────────── */
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--border); background: var(--white); margin-bottom: 40px; }
+    .metric-box { padding: 24px; border-right: 1px solid var(--border); transition: 0.2s; position: relative; }
+    .metric-box:last-child { border-right: none; }
+    .metric-box:hover { background: var(--orange-lt); }
+    .metric-box::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 3px; background: var(--orange); transition: 0.3s; }
+    .metric-box:hover::after { width: 100%; }
+
+    .m-val { font-size: 2.2rem; font-weight: 700; color: var(--ink); letter-spacing: -1px; margin-bottom: 4px; }
+    .m-lbl { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+
+    /* ── CASE CARDS ──────────────────────────── */
+    .section-head { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -1px; }
+    
+    .filter-pill-box { display: flex; gap: 8px; }
+    .filter-pill-box select {
+        padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+        font-family: 'Space Mono', monospace; font-size: 0.65rem; text-transform: uppercase; outline: none;
+    }
+
+    .case-container { display: grid; gap: 16px; }
+    .sr-case-card {
+        background: var(--white); border: 1.5px solid var(--border); border-radius: 16px;
+        padding: 24px; transition: 0.3s ease; position: relative;
+    }
+    .sr-case-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); border-color: var(--orange); }
+    
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .case-id-tag { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); background: var(--bg); padding: 4px 8px; border-radius: 4px; }
+    
+    .case-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+    .info-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .info-value { font-size: 0.9rem; font-weight: 500; }
+
+    /* Status Badges */
+    .badge-sr {
+        font-family: 'Space Mono', monospace; font-size: 0.6rem; font-weight: 700;
+        padding: 6px 12px; border-radius: 50px; text-transform: uppercase;
+    }
+    .status-investigating { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(255,107,53,0.3); }
+    .status-resolved { background: #f0fdf4; color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .status-pending { background: #fffbeb; color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+
+    /* Footer Actions */
+    .card-actions { border-top: 1px solid var(--border); padding-top: 18px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-sr {
+        font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; padding: 12px 20px; border-radius: 10px; border: none;
+        cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-dark { background: var(--ink); color: white; }
+    .btn-dark:hover { background: var(--orange); transform: translateY(-2px); }
+    
+    .status-update-wrap select {
+        background: var(--bg); border: 1px solid var(--border); padding: 8px 12px;
+        border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    }
+
+    @media (max-width: 768px) {
+        .metrics-grid { grid-template-columns: 1fr 1fr; }
+        .case-info-grid { grid-template-columns: 1fr; }
+        .officer-hero { padding: 24px; flex-direction: column; align-items: flex-start; }
+    }
+</style>
+
+{% if request.user.userprofile.disapproval_message %}
+    <div class="sr-alert sr-alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span><strong>Access Restricted:</strong> {{ request.user.userprofile.disapproval_message }}</span>
+    </div>
+{% elif not request.user.userprofile.is_approved %}
+    <div class="sr-alert sr-alert-warn">
+        <i class="fas fa-clock"></i>
+        <span><strong>Pending Authorization:</strong> Your credentials are under review by the station commander. [cite: 105]</span>
+    </div>
+{% else %}
+
+    <div class="officer-hero">
+        <div class="hero-grid"></div>
+        <div style="position: relative; z-index: 1;">
+            <div class="officer-eyebrow">Duty Officer Dashboard</div>
+            <h1 class="officer-name">{{ officer_profile.user.username }}</h1>
+            <div class="officer-meta-row">
+                <div>Station: <span>{{ officer_profile.station_name }}</span></div>
+                <div>Badge ID: <span>{{ officer_profile.badge_id }}</span></div>
+            </div>
+        </div>
+        <div class="live-status">
+            <div class="status-pulse"></div> ACTIVE PATROL
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-box">
+            <div class="m-val">{{ metrics.resolution_rate }}%</div>
+            <div class="m-lbl">Resolution Rate</div>
+        </div>
+        <div class="metric-box">
+            <div class="m-val">{{ metrics.total_cases }}</div>
+            <div class="m-lbl">Total Reports</div>
+        </div>
+        <div class="metric-box">
+            <div class="m-val" style="color: var(--orange);">{{ assigned_reports|length }}</div>
+            <div class="m-lbl">Active Caseload</div>
+        </div>
+        <div class="metric-box">
+            <div class="m-val" style="color: var(--teal);">98%</div>
+            <div class="m-lbl">Uptime Status</div>
+        </div>
+    </div>
+
+    <div class="section-head">
+        <h2 class="section-title">Assigned Cases</h2>
+        <div class="filter-pill-box">
+            <select id="case-filter">
+                <option value="All">All Active</option>
+                <option value="Under Investigation">In Progress</option>
+                <option value="Pending">Queue</option>
+                <option value="Resolved">Closed</option>
+            </select>
+        </div>
+    </div>
+
+    {% if assigned_reports %}
+        <div class="case-container">
+            {% for report in assigned_reports %}
+            <div class="sr-case-card" data-status="{{ report.resolution_status }}">
+                <div class="card-top">
+                    <div>
+                        <span class="case-id-tag">#{{ report.id }}</span>
+                        <h3 style="font-size: 1.1rem; margin-top: 8px;">{{ report.crime_type }}</h3>
+                    </div>
+                    <span class="badge-sr {% if report.resolution_status == 'Resolved' %}status-resolved{% elif report.resolution_status == 'Pending' %}status-pending{% else %}status-investigating{% endif %}">
+                        {{ report.resolution_status }}
+                    </span>
+                </div>
+
+                <div class="case-info-grid">
+                    <div>
+                        <div class="info-label">Location</div>
+                        <div class="info-value">{{ report.address }}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Reported On</div>
+                        <div class="info-value">{{ report.reported_at|date:"M d, Y" }}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Risk Severity</div>
+                        <div class="info-value" style="color: {% if report.severity_score > 7 %}var(--rose){% elif report.severity_score > 4 %}var(--amber){% else %}var(--green){% endif %}; font-weight: 700;">
+                            LVL {{ report.severity_score }}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <div class="info-label">Description</div>
+                    <p style="font-size: 0.85rem; color: var(--ink2); line-height: 1.6;">{{ report.description|truncatechars:180 }}</p>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn-sr btn-dark" onclick="viewEvidence({{ report.id }})">
+                        <i class="fas fa-folder-open"></i> Analyze Evidence
+                    </button>
+                    
+                    <form action="{% url 'update_report_status' report.id %}" method="post" class="status-update-wrap">
+                        {% csrf_token %}
+                        <select name="resolution_status" onchange="this.form.submit()">
+                            <option value="Pending" {% if report.resolution_status == "Pending" %}selected{% endif %}>Set Pending</option>
+                            <option value="Under Investigation" {% if report.resolution_status == "Under Investigation" %}selected{% endif %}>Investigating</option>
+                            <option value="Resolved" {% if report.resolution_status == "Resolved" %}selected{% endif %}>Resolve Case</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 60px; border: 1.5px dashed var(--border); border-radius: 16px;">
+            <i class="fas fa-shield-alt" style="font-size: 2rem; color: var(--border); margin-bottom: 16px;"></i>
+            <p style="font-family: 'Space Mono'; color: var(--muted); text-transform: uppercase; font-size: 0.7rem;">Station Clear — No cases currently assigned</p>
+        </div>
+    {% endif %}
+
+{% endif %}
+
+<script>
+    function viewEvidence(reportId) {
+        fetch(`/view-evidence/${reportId}/`, { method: 'GET', credentials: 'same-origin' })
+        .then(response => response.ok ? response.json() : Promise.reject("Sync Failed"))
+        .then(data => {
+            let html = `<div style="text-align:left; font-family:'Space Grotesk';">`;
+            if (data.video_url) {
+                html += `<div class="info-label">Video Log</div>
+                         <video width="100%" controls style="border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+                            <source src="${data.video_url}" type="video/mp4">
+                         </video>`;
+            }
+            if (data.photo_urls && data.photo_urls.length > 0) {
+                html += `<div class="info-label">Photo Registry</div><div style="display:grid; gap:10px;">`;
+                data.photo_urls.forEach(url => {
+                    html += `<img src="${url}" style="width:100%; border-radius:10px; border:1px solid var(--border);">`;
+                });
+                html += `</div>`;
+            }
+            if (!data.video_url && (!data.photo_urls || data.photo_urls.length === 0)) {
+                html += `<p style="font-family:'Space Mono'; font-size:0.7rem; color:var(--muted);">NO BIOMETRIC EVIDENCE RECORDED</p>`;
+            }
+            html += `</div>`;
+            Swal.fire({ title: 'CASE EVIDENCE', html, confirmButtonColor: '#ff6b35', width: '500px' });
+        })
+        .catch(err => Swal.fire("Access Denied", "Could not retrieve evidence logs", "error"));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const filter = document.getElementById('case-filter');
+        const cards = document.querySelectorAll('.sr-case-card');
+
+        filter.addEventListener('change', (e) => {
+            const val = e.target.value;
+            cards.forEach(card => {
+                const status = card.getAttribute('data-status');
+                if (val === 'All' || status === val) {
+                    card.style.display = 'block';
+                    card.style.animation = 'fadeInUp 0.4s ease forwards';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeRoute — Admin Login</title>
+    {% load static %}
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            /* SAFEROUTE COLOR PALETTE */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* SAFEROUTE TYPOGRAPHY */
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow-x: hidden;
+            font-weight: 300;
+            font-size: 0.9rem;
+            line-height: 1.75;
+        }
+
+        /* ── LEFT PANEL (DARK SECTION STYLING) ── */
+        .left-panel {
+            background: var(--ink);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+        
+        /* Subtle warm grid on dark background */
+        .left-panel::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(247, 197, 159, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(247, 197, 159, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .left-topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 32px 48px;
+            position: relative; z-index: 1;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--orange), var(--amber));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1rem;
+        }
+        .nav-wordmark {
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: -1px;
+            color: var(--white);
+        }
+
+        .restricted-tag {
+            font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--rose);
+            border: 1px solid rgba(244, 63, 94, 0.3); padding: 6px 14px;
+            border-radius: 50px;
+            background: rgba(244, 63, 94, 0.05);
+            font-weight: 700;
+        }
+
+        .left-body {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; padding: 60px 48px;
+            position: relative; z-index: 1;
+        }
+        .left-eyebrow {
+            font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--gold-text);
+            margin-bottom: 16px;
+        }
+        .left-headline {
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: clamp(3rem, 5vw, 4rem);
+            line-height: 1.1; letter-spacing: -1.5px;
+            color: var(--white); margin-bottom: 24px;
+        }
+        .left-headline span { color: var(--orange); }
+        
+        .left-sub {
+            font-size: 0.95rem; font-weight: 300;
+            color: var(--muted); max-width: 420px;
+            margin-bottom: 40px;
+        }
+
+        .left-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 24px 48px;
+            position: relative; z-index: 1;
+        }
+        .footer-item {
+            font-family: var(--font-mono); font-size: 0.55rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .live-dot {
+            width: 6px; height: 6px; background: var(--orange);
+            border-radius: 50%; animation: blink 1.8s step-start infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        /* ── RIGHT PANEL (FORM AREA) ────────── */
+        .right-panel {
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 64px 56px; position: relative;
+        }
+
+        .admin-login-card {
+            width: 100%; max-width: 420px;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 32px;
+            position: relative; z-index: 1;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.04);
+            animation: fadeUpIn 0.38s ease forwards;
+            opacity: 0; transform: translateY(8px);
+        }
+        @keyframes fadeUpIn { to { opacity: 1; transform: translateY(0); } }
+
+        .form-header { margin-bottom: 32px; text-align: center; }
+        .form-eyebrow {
+            font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--rose); margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .form-title {
+            font-family: var(--font-head); font-size: 1.8rem; font-weight: 700;
+            color: var(--ink); letter-spacing: -1px; line-height: 1.2; margin-bottom: 8px;
+        }
+        .form-sub { font-size: 0.85rem; color: var(--muted); }
+
+        .field { margin-bottom: 20px; }
+        .field label {
+            display: block; font-family: var(--font-mono); font-size: 0.6rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 8px; font-weight: 700;
+        }
+        
+        .input-wrap { position: relative; }
+        .input-wrap i.field-icon {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%); color: #ccc;
+            font-size: 0.9rem; pointer-events: none; transition: color 0.2s;
+        }
+        .input-wrap input {
+            width: 100%; padding: 12px 14px 12px 40px;
+            background: var(--bg); 
+            border: 1px solid var(--border);
+            border-radius: 10px; 
+            font-family: var(--font-head); font-size: 0.82rem;
+            color: var(--ink); outline: none;
+            transition: all 0.2s ease;
+        }
+        .input-wrap input:focus {
+            border-color: var(--orange);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
+        }
+        .input-wrap:focus-within i.field-icon { color: var(--orange); }
+        .input-wrap input::placeholder { color: #bbb; font-weight: 300; }
+        
+        .toggle-pw {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: #ccc; font-size: 0.9rem; padding: 4px; transition: color 0.2s;
+        }
+        .toggle-pw:hover { color: var(--orange); }
+
+        .btn-primary {
+            width: 100%; margin-top: 12px;
+            background: var(--orange); color: var(--white);
+            border: none; border-radius: 10px;
+            font-family: var(--font-mono); font-size: 0.7rem;
+            font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+            padding: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 6px 20px rgba(255,107,53,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: var(--orange-dk);
+            box-shadow: 0 8px 25px rgba(255,107,53,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+        }
+
+        .back-link {
+            display: flex; align-items: center; gap: 7px; justify-content: center;
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); text-decoration: none; margin-top: 24px;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--orange); }
+
+        /* ── TOAST NOTIFICATION ──────────────── */
+        .toast {
+            position: fixed; top: 24px; left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 24px; font-family: var(--font-mono); font-size: 0.65rem;
+            letter-spacing: 1px; color: var(--ink); text-transform: uppercase;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+            z-index: 9999; display: flex; align-items: center; gap: 12px;
+            opacity: 0; transition: all 0.38s ease; min-width: 300px;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast i { font-size: 1rem; }
+
+        @media (max-width: 900px) {
+            body { grid-template-columns: 1fr; }
+            .left-panel { display: none; }
+            .right-panel { padding: 48px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="left-panel">
+        <div class="left-topbar">
+            <a href="{% url 'index' %}" class="nav-brand">
+                <div class="nav-logo"><i class="fas fa-shield-alt"></i></div>
+                <span class="nav-wordmark">SafeRoute</span>
+            </a>
+            <span class="restricted-tag">Restricted</span>
+        </div>
+
+        <div class="left-body">
+            <div class="left-eyebrow">Admin Access</div>
+            <h1 class="left-headline">
+                SYSTEM<br>
+                <span>ADMIN</span><br>
+                PORTAL
+            </h1>
+            <p class="left-sub">
+                This portal is restricted to authorized SafeRoute administrators. Manage officer approvals, monitor verified risk reports, and oversee platform operations.
+            </p>
+        </div>
+
+        <div class="left-footer">
+            <div class="footer-item"><span class="live-dot"></span> System online</div>
+            <div class="footer-item">SafeRoute v2.0</div>
+            <div class="footer-item">Admin Portal</div>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="admin-login-card">
+            <div class="form-header">
+                <div class="form-eyebrow">Secure Gateway</div>
+                <h2 class="form-title">Admin Login</h2>
+                <p class="form-sub">Authorized personnel only.</p>
+            </div>
+
+            <form method="POST" action="{% url 'admin_login' %}">
+                {% csrf_token %}
+
+                <div class="field">
+                    <label for="username">Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user field-icon"></i>
+                        <input type="text" id="username" name="username" placeholder="Enter admin username" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter password" required>
+                        <button type="button" class="toggle-pw" id="togglePw">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Authenticate <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <a href="{% url 'index' %}" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Return to Public Portal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePw').addEventListener('click', function() {
+            const pw = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (pw.type === 'password') {
+                pw.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+                icon.style.color = 'var(--orange)';
+            } else {
+                pw.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+                icon.style.color = '#ccc';
+            }
+        });
+
+        // Django messages to SafeRoute Toast
+        const messages = [];
+        {% for message in messages %}
+        messages.push({ level: "{{ message.level_tag }}", text: "{{ message }}", tags: "{{ message.tags }}" });
+        {% endfor %}
+
+        if (messages.length > 0) {
+            const toast = document.getElementById('toast');
+            const m = messages[0];
+            const isSuccess = m.level === 'success';
+            const color = isSuccess ? 'var(--green)' : 'var(--rose)';
+            const icon = isSuccess ? 'fa-check-circle' : 'fa-exclamation-triangle';
+            
+            toast.style.borderColor = color;
+            toast.style.borderLeft = `4px solid ${color}`;
+            toast.innerHTML = `<i class="fas ${icon}" style="color:${color}"></i> <span>${m.text}</span>`;
+            
+            setTimeout(() => toast.classList.add('show'), 150);
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+    </script>
+</body>
+</html>

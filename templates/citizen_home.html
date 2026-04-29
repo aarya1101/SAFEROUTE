@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+{% block content %}
+{% csrf_token %}
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        /* SAFEROUTE COLOR PALETTE */
+        --bg:        #fff9f5;
+        --white:     #ffffff;
+        --ink:       #1a1a2e;
+        --ink2:      #2d2d4e;
+        --muted:     #888888;
+        --border:    #ffe4d0;
+        --orange:    #ff6b35;
+        --orange-dk: #e85520;
+        --orange-lt: #fff5f0;
+        --teal:      #0d9488;
+        --amber:     #f59e0b;
+        --rose:      #f43f5e;
+        --green:     #10b981;
+        --gold-text: #f7c59f;
+
+        /* SAFEROUTE TYPOGRAPHY */
+        --font-head: 'Space Grotesk', sans-serif;
+        --font-mono: 'Space Mono', monospace;
+        --font-body: 'Space Grotesk', sans-serif;
+    }
+
+    .welcome-shell {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        animation: fadeUpIn 0.38s ease forwards;
+    }
+    @keyframes fadeUpIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── STATS ROW ──────────────────────── */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: var(--white);
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+    }
+    .stat-cell {
+        padding: 24px;
+        border-right: 1px solid var(--border);
+        position: relative;
+        transition: background 0.2s ease;
+        display: flex; flex-direction: column; justify-content: center;
+    }
+    .stat-cell:last-child { border-right: none; }
+    
+    /* Bottom hover orange line */
+    .stat-cell::after {
+        content: ''; position: absolute; bottom: 0; left: 0;
+        height: 3px; width: 0; background: var(--orange);
+        transition: width 0.3s ease;
+    }
+    .stat-cell:hover { background: var(--bg); }
+    .stat-cell:hover::after { width: 100%; }
+
+    .stat-value {
+        font-family: var(--font-head); font-weight: 700; font-size: 2.2rem;
+        color: var(--ink); line-height: 1.1; margin-bottom: 4px; letter-spacing: -1px;
+    }
+    .stat-value.accent { color: var(--orange); }
+    .stat-value.safe { color: var(--green); }
+
+    .stat-label {
+        font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── DASHBOARD GRID ─────────────────── */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    /* Left — Dark Section */
+    .welcome-left {
+        background: var(--ink);
+        border-radius: 16px;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.04);
+    }
+    .welcome-left::before {
+        content: ''; position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(247, 197, 159, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(247, 197, 159, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px; pointer-events: none;
+    }
+    
+    .welcome-eyebrow {
+        font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--gold-text);
+        display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+        position: relative; z-index: 1;
+    }
+    .welcome-eyebrow::before { content: ''; width: 16px; height: 2px; background: var(--orange); }
+
+    .welcome-headline {
+        font-family: var(--font-head); font-size: clamp(3rem, 5vw, 4.5rem); font-weight: 700;
+        line-height: 1.05; letter-spacing: -1.5px; color: var(--white);
+        margin-bottom: 24px; position: relative; z-index: 1;
+    }
+    .welcome-headline span { color: var(--orange); }
+
+    .welcome-desc {
+        font-family: var(--font-body); font-size: 0.95rem; font-weight: 300;
+        color: var(--muted); line-height: 1.75; max-width: 400px;
+        position: relative; z-index: 1;
+    }
+
+    /* Right — Quick Access Menu */
+    .welcome-right {
+        background: var(--white);
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+    }
+    .menu-heading {
+        font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+        margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    
+    .quick-list { display: flex; flex-direction: column; gap: 8px; }
+    .quick-item {
+        display: flex; align-items: center; text-decoration: none;
+        border: 1.5px solid transparent; border-radius: 12px;
+        padding: 12px 16px; transition: all 0.2s ease;
+    }
+    .quick-item:hover {
+        background: var(--orange-lt); border-color: var(--border);
+        transform: translateY(-2px);
+    }
+
+    .qi-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: var(--bg); border: 1.5px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.9rem; color: var(--orange); flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+    .quick-item:hover .qi-icon { background: var(--orange); color: var(--white); border-color: var(--orange); }
+    
+    .qi-text { flex: 1; padding: 0 16px; }
+    .qi-title { font-family: var(--font-head); font-size: 0.95rem; font-weight: 600; color: var(--ink); }
+    .qi-sub { font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+    
+    .qi-arrow { color: #ccc; font-size: 0.8rem; transition: transform 0.2s ease, color 0.2s ease; }
+    .quick-item:hover .qi-arrow { color: var(--orange); transform: translateX(4px); }
+
+    /* Bottom Status Bar */
+    .welcome-bottom {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 24px; background: var(--bg); border: 1.5px solid var(--border);
+        border-radius: 12px; margin-top: 8px;
+    }
+    .wb-label {
+        font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .wb-dot {
+        width: 6px; height: 6px; background: var(--orange); border-radius: 50%;
+        animation: blink 1.8s step-start infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ══════════════════════════════════════
+       SOS WIDGET (SAFEROUTE DESIGN SYSTEM)
+    ══════════════════════════════════════ */
+
+    #sos-fab {
+        position: fixed; bottom: 32px; right: 32px; z-index: 9999;
+        width: 60px; height: 60px; border-radius: 50%;
+        background: var(--rose); border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--white); font-family: var(--font-mono); font-weight: 700;
+        font-size: 0.8rem; letter-spacing: 1px;
+        box-shadow: 0 0 0 0 rgba(244,63,94,0.4);
+        animation: pulse-sos 2.5s ease-in-out infinite;
+        transition: transform 0.2s ease;
+    }
+    #sos-fab:hover { transform: scale(1.06); }
+    @keyframes pulse-sos {
+        0% { box-shadow: 0 0 0 0 rgba(244,63,94,0.6); }
+        50% { box-shadow: 0 0 14px 10px rgba(244,63,94,0); }
+        100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); }
+    }
+
+    #sos-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(26,26,46,0.85); /* --ink with opacity */
+        backdrop-filter: blur(8px); z-index: 10000;
+        align-items: center; justify-content: center;
+    }
+    #sos-overlay.show { display: flex; }
+
+    #sos-modal {
+        background: var(--white); border: 1.5px solid var(--border);
+        border-radius: 16px; padding: 40px 32px; width: 340px; text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        animation: popIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn { from { opacity:0; transform: scale(0.9) translateY(10px); } to { opacity:1; transform: scale(1) translateY(0); } }
+    
+    #sos-modal h3 {
+        font-family: var(--font-head); font-weight: 700; font-size: 1.5rem;
+        color: var(--ink); margin-bottom: 8px; letter-spacing: -0.5px;
+    }
+    #sos-modal p { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; line-height: 1.5; font-family: var(--font-body); }
+
+    #sos-countdown-wrap { position: relative; width: 90px; height: 90px; margin: 0 auto 24px; }
+    #sos-countdown-wrap svg { transform: rotate(-90deg); }
+    #sos-countdown-ring {
+        fill: none; stroke: var(--rose); stroke-width: 5;
+        stroke-dasharray: 245; stroke-dashoffset: 0; stroke-linecap: round;
+        transition: stroke-dashoffset 1s linear;
+    }
+    #sos-countdown-num {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-head); font-size: 2rem; font-weight: 700; color: var(--rose);
+    }
+
+    .sos-btn-cancel {
+        width: 100%; padding: 12px; background: var(--bg); border: 1.5px solid var(--border);
+        border-radius: 10px; color: var(--ink); font-family: var(--font-mono);
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        cursor: pointer; transition: all 0.2s ease;
+    }
+    .sos-btn-cancel:hover { border-color: var(--ink); background: var(--orange-lt); color: var(--orange); }
+
+    #sos-sending { display: none; }
+    #sos-sending .sos-spinner {
+        width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--border);
+        border-top-color: var(--rose); animation: sos-spin 0.8s linear infinite; margin: 0 auto 16px;
+    }
+    @keyframes sos-spin { to { transform: rotate(360deg); } }
+
+    #sos-toast {
+        position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-80px);
+        z-index: 10001; background: var(--white); border: 1.5px solid var(--border);
+        border-radius: 12px; padding: 14px 24px; font-family: var(--font-mono);
+        font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        color: var(--ink); box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+        opacity: 0; pointer-events: none; transition: all 0.38s ease; display: flex; align-items: center; gap: 12px;
+    }
+    #sos-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    #sos-toast.success { border-color: var(--green); border-left: 4px solid var(--green); color: var(--green); }
+    #sos-toast.error   { border-color: var(--rose); border-left: 4px solid var(--rose); color: var(--rose); }
+
+    #sos-silent-wrap {
+        position: fixed; bottom: 104px; right: 32px; z-index: 9998;
+        display: flex; align-items: center; gap: 8px; background: var(--white);
+        border: 1.5px solid var(--border); border-radius: 50px; padding: 8px 16px;
+        font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700; letter-spacing: 1px;
+        text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04); user-select: none;
+    }
+    #sos-silent-wrap:hover { border-color: var(--orange); color: var(--orange); }
+    #sos-silent-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); transition: background 0.2s; }
+    #sos-silent-dot.silent { background: var(--muted); }
+
+    @media (max-width: 900px) {
+        .dashboard-grid, .stats-row { grid-template-columns: 1fr; }
+        .stats-row { grid-template-columns: 1fr 1fr; }
+        .stat-cell:nth-child(2) { border-right: none; }
+        .welcome-left { padding: 32px 24px; }
+        .welcome-right { padding: 24px; }
+    }
+</style>
+
+<div class="welcome-shell">
+
+    <div class="stats-row">
+        <div class="stat-cell">
+            <div class="stat-value accent">87%</div>
+            <div class="stat-label">Prediction Accuracy</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-value">2,418</div>
+            <div class="stat-label">Reports Processed</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-value">18</div>
+            <div class="stat-label">Active Safe Zones</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-value safe">&lt;2m</div>
+            <div class="stat-label">Avg. Response Time</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <div class="welcome-left">
+            <div class="welcome-eyebrow">Citizen Dashboard</div>
+            <div class="welcome-headline">
+                YOUR HUB FOR<br>SECURING<br><span>SAFEROUTE.</span>
+            </div>
+            <p class="welcome-desc">
+                Access predictive safety intelligence, route mapping, and instant SOS capabilities. Your security is powered by real-time verified data and community reporting.
+            </p>
+        </div>
+
+        <div class="welcome-right">
+            <div class="menu-heading">Quick Actions</div>
+            <div class="quick-list">
+
+                <a href="{% url 'crime_report' %}" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-flag"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">Report Incident</div>
+                        <div class="qi-sub">Log a secure crime report</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <a href="{% url 'safety_check' %}" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">Zone Safety Checker</div>
+                        <div class="qi-sub">Analyze a location's risk</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <a href="{% url 'rate_city' %}" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-star"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">Rate a City</div>
+                        <div class="qi-sub">Share your safety experience</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <a href="{% url 'view_city_ratings' %}" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">View City Ratings</div>
+                        <div class="qi-sub">Community safety sentiment</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <a href="{% url 'safety_predict' %}" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-brain"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">AI Predictive Routing</div>
+                        <div class="qi-sub">Forecast safe travel paths</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <a href="{% url 'crime_map' %}" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">Live Zone Map</div>
+                        <div class="qi-sub">View verified safe zones & hotspots</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+                
+                <a href="/chatbot/assistant/" class="quick-item">
+                    <div class="qi-icon"><i class="fas fa-comments"></i></div>
+                    <div class="qi-text">
+                        <div class="qi-title">Virtual Assistant</div>
+                        <div class="qi-sub">24/7 automated support</div>
+                    </div>
+                    <div class="qi-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="welcome-bottom">
+        <div class="wb-label"><span class="wb-dot"></span> Network Sync Active</div>
+        <div class="wb-label">SafeRoute Web Portal</div>
+    </div>
+
+</div>
+
+<button id="sos-fab" title="SOS Emergency Alert" onclick="sosFabClick()">SOS</button>
+
+<div id="sos-silent-wrap" onclick="toggleSilent()" title="Toggle silent mode">
+    <div id="sos-silent-dot"></div>
+    <span id="sos-silent-label">Audio Active</span>
+</div>
+
+<div id="sos-overlay">
+    <div id="sos-modal">
+        <div id="sos-countdown-state">
+            <h3><i class="fas fa-exclamation-triangle" style="color: var(--rose); margin-right: 8px;"></i> Emergency SOS</h3>
+            <p>Broadcasting your live location to authorities and emergency contacts in...</p>
+            <div id="sos-countdown-wrap">
+                <svg width="90" height="90" viewBox="0 0 90 90">
+                    <circle cx="45" cy="45" r="39" fill="none" stroke="var(--border)" stroke-width="5"/>
+                    <circle id="sos-countdown-ring" cx="45" cy="45" r="39"/>
+                </svg>
+                <div id="sos-countdown-num">3</div>
+            </div>
+            <button class="sos-btn-cancel" onclick="cancelSOS()">Abort Broadcast</button>
+        </div>
+
+        <div id="sos-sending">
+            <h3>Transmitting...</h3>
+            <p>Securing geolocation lock and alerting dispatch network.</p>
+            <div class="sos-spinner"></div>
+        </div>
+    </div>
+</div>
+
+<div id="sos-toast"></div>
+
+<script>
+(function () {
+    var countdownTimer = null;
+    var countdownVal   = 3;
+    var silentMode     = JSON.parse(localStorage.getItem('sos_silent') || 'false');
+    var CIRCUMFERENCE  = 2 * Math.PI * 39;
+
+    /* ── get CSRF token ── */
+    function getCSRF() {
+        var el = document.querySelector('[name=csrfmiddlewaretoken]');
+        return el ? el.value : '';
+    }
+
+    /* ── Silent UI ── */
+    function updateSilentUI() {
+        document.getElementById('sos-silent-dot').classList.toggle('silent', silentMode);
+        document.getElementById('sos-silent-label').textContent = silentMode ? 'Silent Mode' : 'Audio Active';
+    }
+    updateSilentUI();
+
+    window.toggleSilent = function () {
+        silentMode = !silentMode;
+        localStorage.setItem('sos_silent', JSON.stringify(silentMode));
+        updateSilentUI();
+        showToast(silentMode ? '<i class="fas fa-volume-mute"></i> Silent mode enabled' : '<i class="fas fa-volume-up"></i> Audio mode active', 'success', 2500);
+    };
+
+    /* ── FAB click ── */
+    window.sosFabClick = function () {
+        if (silentMode) { fireSOS(); return; }
+        openCountdown();
+    };
+
+    /* ── Countdown ── */
+    function openCountdown() {
+        countdownVal = 3;
+        document.getElementById('sos-countdown-num').textContent = '3';
+        document.getElementById('sos-countdown-state').style.display = 'block';
+        document.getElementById('sos-sending').style.display = 'none';
+        document.getElementById('sos-overlay').classList.add('show');
+
+        var ring = document.getElementById('sos-countdown-ring');
+        ring.style.strokeDasharray  = CIRCUMFERENCE;
+        ring.style.strokeDashoffset = '0';
+
+        countdownTimer = setInterval(function () {
+            countdownVal--;
+            document.getElementById('sos-countdown-num').textContent = countdownVal;
+            ring.style.strokeDashoffset = ((3 - countdownVal) / 3 * CIRCUMFERENCE);
+            if (countdownVal <= 0) {
+                clearInterval(countdownTimer);
+                document.getElementById('sos-countdown-state').style.display = 'none';
+                document.getElementById('sos-sending').style.display = 'block';
+                fireSOS();
+            }
+        }, 1000);
+    }
+
+    window.cancelSOS = function () {
+        clearInterval(countdownTimer);
+        document.getElementById('sos-overlay').classList.remove('show');
+        showToast('<i class="fas fa-check"></i> Broadcast Aborted', 'success', 2000);
+    };
+
+    /* ── Geolocation → send ── */
+    function fireSOS() {
+        if (!navigator.geolocation) {
+            closeOverlay();
+            showToast('<i class="fas fa-times"></i> Location not supported', 'error');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            function (pos) { sendSOS(pos.coords.latitude, pos.coords.longitude); },
+            function ()    { closeOverlay(); showToast('<i class="fas fa-times"></i> GPS lock failed. Enable permissions.', 'error'); },
+            { timeout: 8000, enableHighAccuracy: true }
+        );
+    }
+
+    /* ── POST to Django ── */
+    function sendSOS(lat, lng) {
+        fetch("{% url 'sos_trigger' %}", {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+            body: JSON.stringify({ latitude: lat, longitude: lng }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            closeOverlay();
+            if (data.success) {
+                showToast('<i class="fas fa-check-circle"></i> SOS dispatched to ' + data.sent_to + ' contact(s).', 'success', 5000);
+            } else {
+                showToast('<i class="fas fa-times-circle"></i> ' + (data.message || 'Dispatch failed. Retrying...'), 'error', 5000);
+            }
+        })
+        .catch(function () {
+            closeOverlay();
+            showToast('<i class="fas fa-wifi"></i> Network error. Fallback to SMS.', 'error');
+        });
+    }
+
+    function closeOverlay() {
+        document.getElementById('sos-overlay').classList.remove('show');
+    }
+
+    function showToast(msg, type, duration) {
+        var t = document.getElementById('sos-toast');
+        t.innerHTML = msg;
+        t.className = 'show ' + (type || '');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(function () { t.classList.remove('show'); }, duration || 4000);
+    }
+
+    document.getElementById('sos-overlay').addEventListener('click', function (e) {
+        if (e.target === this) window.cancelSOS();
+    });
+})();
+</script>
+
+{% endblock %}

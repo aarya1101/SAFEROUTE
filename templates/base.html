@@ -1,0 +1,585 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeRoute — Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <style>
+        :root {
+            --bg:         #fff9f5;
+            --white:      #ffffff;
+            --ink:        #1a1a2e;
+            --ink2:       #2d2d4e;
+            --muted:      #888888;
+            --border:     #ffe4d0;
+            --orange:     #ff6b35;
+            --orange-dk:  #e85520;
+            --orange-lt:  #fff5f0;
+            --teal:       #0d9488;
+            --amber:      #f59e0b;
+            --rose:       #f43f5e;
+            --green:      #10b981;
+            --gold-text:  #f7c59f;
+            --sidebar-w:  248px;
+            --topbar-h:   60px;
+            --pull-tab:   18px;
+            --transition: 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── TICKER BAR ───────────────────────────────── */
+        .ticker-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 28px;
+            background: var(--ink);
+            z-index: 400;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .ticker-track {
+            display: flex;
+            align-items: center;
+            gap: 48px;
+            white-space: nowrap;
+            animation: ticker 25s linear infinite;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--gold-text);
+            padding: 0 24px;
+        }
+        .ticker-track .ticker-sep { color: var(--orange); opacity: 0.5; }
+        @keyframes ticker {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ── GLOBAL NAVBAR ────────────────────────────── */
+        .g-topbar {
+            position: fixed;
+            top: 28px; left: 0; right: 0;
+            height: var(--topbar-h);
+            background: rgba(255, 252, 248, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px 0 0;
+            z-index: 300;
+        }
+
+        .g-topbar-brand {
+            display: flex;
+            align-items: center; gap: 12px;
+            height: 100%; text-decoration: none;
+            padding: 0 22px;
+            flex-shrink: 0;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dk) 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(255,107,53,0.35);
+            flex-shrink: 0;
+        }
+        .brand-logo i { color: #fff; font-size: 0.9rem; }
+
+        .g-topbar-wordmark {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            color: var(--ink);
+        }
+        .g-topbar-wordmark span { color: var(--orange); }
+
+        .g-topbar-center {
+            display: flex;
+            align-items: center; gap: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .g-topbar-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--orange);
+            border-radius: 50%;
+            animation: blink 1.8s step-start infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        .g-topbar-right {
+            display: flex;
+            align-items: center; gap: 0; height: 100%;
+        }
+        .g-topbar-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: none; border: none;
+            border-left: 1px solid var(--border);
+            padding: 0 18px;
+            height: 100%;
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; text-decoration: none;
+            transition: color 0.15s, background 0.15s;
+        }
+        .g-topbar-btn:hover { color: var(--orange); background: var(--orange-lt); }
+        .g-topbar-btn i { font-size: 0.75rem; }
+
+        .g-topbar-cta {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fff;
+            background: var(--ink);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin-left: 12px;
+            cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 12px rgba(26,26,46,0.25), 0 1px 0 rgba(255,255,255,0.08) inset;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .g-topbar-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(26,26,46,0.35), 0 1px 0 rgba(255,255,255,0.08) inset;
+        }
+
+        /* ── SIDEBAR ──────────────────────────────────── */
+        .sidebar {
+            position: fixed;
+            top: calc(28px + var(--topbar-h)); left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - 28px - var(--topbar-h));
+            background: var(--ink);
+            display: flex; flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            z-index: 200;
+            transform: translateX(calc(-1 * var(--sidebar-w) + var(--pull-tab)));
+            transition: transform var(--transition);
+            overflow: hidden;
+        }
+        .sidebar.expanded {
+            transform: translateX(0);
+            box-shadow: 4px 0 32px rgba(0,0,0,0.2);
+        }
+
+        .sidebar-inner {
+            flex: 1;
+            display: flex; flex-direction: column;
+            padding: 28px 0 24px; overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .sidebar.expanded .sidebar-inner { opacity: 1; }
+
+        .sidebar-section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: #2e2e3e;
+            padding: 0 20px 10px;
+        }
+
+        .sidebar-nav { list-style: none; padding: 0; margin: 0 0 28px; }
+        .sidebar-nav li { display: block; }
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center; gap: 13px;
+            padding: 11px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.8px; text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            white-space: nowrap;
+            transition: color 0.15s, background 0.15s, border-color 0.15s;
+        }
+        .sidebar-nav li a i {
+            width: 16px;
+            text-align: center; font-size: 0.82rem;
+            flex-shrink: 0; opacity: 0.55; transition: opacity 0.15s, color 0.15s;
+        }
+        .sidebar-nav li a:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.04);
+            border-left-color: rgba(255,255,255,0.15);
+        }
+        .sidebar-nav li a:hover i { opacity: 1; }
+        .sidebar-nav li.active a {
+            color: #fff;
+            background: rgba(255,107,53,0.08);
+            border-left-color: var(--orange);
+        }
+        .sidebar-nav li.active a i { opacity: 1; color: var(--orange); }
+
+        .sidebar-nav li {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity 0.25s, transform 0.25s;
+        }
+        .sidebar.expanded .sidebar-nav li { opacity: 1; transform: translateX(0); }
+        .sidebar.expanded .sidebar-nav li:nth-child(1) { transition-delay: 0.05s; }
+        .sidebar.expanded .sidebar-nav li:nth-child(2) { transition-delay: 0.10s; }
+        .sidebar.expanded .sidebar-nav li:nth-child(3) { transition-delay: 0.15s; }
+        .sidebar.expanded .sidebar-nav li:nth-child(4) { transition-delay: 0.20s; }
+        .sidebar.expanded .sidebar-nav li:nth-child(5) { transition-delay: 0.25s; }
+        .sidebar.expanded .sidebar-nav li:nth-child(6) { transition-delay: 0.30s; }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin: 8px 20px 20px;
+        }
+
+        .sidebar-nav li.logout a { color: #3a3a4a; }
+        .sidebar-nav li.logout a:hover {
+            color: var(--rose);
+            background: rgba(244,63,94,0.06);
+            border-left-color: var(--rose);
+        }
+
+        .sidebar-footer {
+            padding: 18px 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .sidebar.expanded .sidebar-footer { opacity: 1; }
+        .sidebar-footer-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: #2e2e3e; line-height: 1.9;
+        }
+        .sidebar-footer-signal {
+            display: inline-block;
+            width: 5px; height: 5px;
+            background: var(--green); border-radius: 50%;
+            margin-right: 6px;
+            animation: blink 1.8s step-start infinite;
+        }
+
+        /* ── PULL TAB ─────────────────────────────────── */
+        .pull-tab {
+            position: absolute;
+            top: 50%; right: calc(-1 * var(--pull-tab));
+            transform: translateY(-50%);
+            width: var(--pull-tab);
+            height: 72px;
+            background: var(--ink);
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 201;
+            box-shadow: 3px 0 12px rgba(0,0,0,0.2);
+            transition: background 0.15s;
+        }
+        .pull-tab:hover { background: var(--ink2); }
+        .pull-tab i {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            transition: transform var(--transition), color 0.15s;
+        }
+        .sidebar.expanded .pull-tab i { transform: rotate(180deg); color: var(--muted); }
+
+        /* ── MAIN WRAPPER ─────────────────────────────── */
+        .main-wrapper {
+            flex: 1;
+            margin-left: var(--pull-tab);
+            padding-top: calc(28px + var(--topbar-h));
+            display: flex; flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left var(--transition);
+        }
+        body.sidebar-open .main-wrapper {
+            margin-left: var(--sidebar-w);
+        }
+
+        /* Page-level topbar */
+        .page-topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 0 36px;
+            height: 50px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky;
+            top: calc(28px + var(--topbar-h));
+            z-index: 100;
+        }
+        .page-crumb {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+        }
+        .page-crumb-sep { color: var(--border); margin: 0 6px; }
+        .page-crumb-current {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .page-topbar-actions { display: flex; align-items: center; gap: 0; height: 100%; }
+        .page-action-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); background: none; border: none;
+            border-left: 1px solid var(--border);
+            padding: 0 16px;
+            height: 100%;
+            display: flex; align-items: center; gap: 7px;
+            cursor: pointer; text-decoration: none;
+            transition: color 0.15s, background 0.15s;
+        }
+        .page-action-btn:hover { color: var(--orange); background: var(--orange-lt); }
+        .page-action-btn i { font-size: 0.72rem; }
+
+        /* ── CONTENT ──────────────────────────────────── */
+        .content {
+            flex: 1;
+            padding: 36px;
+            animation: contentIn 0.38s ease both;
+        }
+        @keyframes contentIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── MOBILE OVERLAY ───────────────────────────── */
+        .mobile-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(26,26,46,0.5);
+            z-index: 150;
+        }
+        .mobile-overlay.show { display: block; }
+
+        /* ── RESPONSIVE ───────────────────────────────── */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(calc(-1 * var(--sidebar-w)));
+            }
+            .sidebar.expanded { transform: translateX(0); }
+            .main-wrapper { margin-left: 0 !important; }
+            .pull-tab { display: none; }
+            .g-mobile-toggle { display: flex !important; }
+            .content { padding: 20px; }
+            .page-topbar { padding: 0 20px; }
+            .g-topbar-center { display: none; }
+            .ticker-bar { display: none; }
+        }
+
+        .g-mobile-toggle { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="ticker-bar">
+        <div class="ticker-track">
+            <span>SafeRoute Live Feed Active</span>
+            <span class="ticker-sep">◆</span>
+            <span>Real-time safety intelligence for women travellers across India</span>
+            <span class="ticker-sep">◆</span>
+            <span>Report incidents • Check zones • Plan safe routes</span>
+            <span class="ticker-sep">◆</span>
+            <span>AI-powered safety prediction enabled</span>
+            <span class="ticker-sep">◆</span>
+            <span>SafeRoute v1.0 — Citizen Intelligence Dashboard</span>
+            <span class="ticker-sep">◆</span>
+            <span>SafeRoute Live Feed Active</span>
+            <span class="ticker-sep">◆</span>
+            <span>Real-time safety intelligence for women travellers across India</span>
+            <span class="ticker-sep">◆</span>
+            <span>Report incidents • Check zones • Plan safe routes</span>
+        </div>
+    </div>
+
+    <div class="g-topbar">
+        <a href="{% url 'index' %}" class="g-topbar-brand">
+            <div class="brand-logo">
+                <i class="fas fa-route"></i>
+            </div>
+            <span class="g-topbar-wordmark">Safe<span>Route</span></span>
+        </a>
+
+        <div class="g-topbar-center">
+            <span class="g-topbar-dot"></span>
+            Citizen Intelligence Dashboard
+        </div>
+
+        <div class="g-topbar-right">
+            <a href="/chatbot/assistant/" class="g-topbar-btn">
+                <i class="fas fa-comments"></i> AI Chat
+            </a>
+            <button class="g-topbar-btn g-mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% url 'index' %}" class="g-topbar-cta">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-inner">
+
+            <div class="sidebar-section-label">Reports</div>
+            <ul class="sidebar-nav">
+                <li class="{% if request.resolver_match.url_name == 'crime_report' %}active{% endif %}">
+                    <a href="{% url 'crime_report' %}">
+                        <i class="fas fa-flag"></i> <span>Report a Crime</span>
+                    </a>
+                </li>
+            </ul>
+
+            <hr class="sidebar-divider">
+            <div class="sidebar-section-label">Intelligence</div>
+            <ul class="sidebar-nav">
+                <li class="{% if request.resolver_match.url_name == 'safety_check' %}active{% endif %}">
+                    <a href="{% url 'safety_check' %}">
+                        <i class="fas fa-shield-alt"></i> <span>Zone Safety Checker</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'rate_city' %}active{% endif %}">
+                    <a href="{% url 'rate_city' %}">
+                        <i class="fas fa-star"></i> <span>Rate the City</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'safety_predict' %}active{% endif %}">
+                    <a href="{% url 'safety_predict' %}">
+                        <i class="fas fa-brain"></i> <span>Safety Prediction</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'crime_map' %}active{% endif %}">
+                    <a href="{% url 'crime_map' %}">
+                        <i class="fas fa-map-marked-alt"></i> <span>Crime Hotspot Map</span>
+                    </a>
+                </li>
+            </ul>
+
+            <hr class="sidebar-divider">
+            <div class="sidebar-section-label">System</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="/chatbot/assistant/">
+                        <i class="fas fa-comments"></i> <span>AI Assistant</span>
+                    </a>
+                </li>
+                <li class="logout">
+                    <a href="{% url 'index' %}">
+                        <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-text">
+                <span class="sidebar-footer-signal"></span>Live feed active<br>
+                SafeRoute v1.0 &nbsp;·&nbsp; Citizen
+            </div>
+        </div>
+
+        <button class="pull-tab" id="pullTab" aria-label="Toggle sidebar">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </aside>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <div class="main-wrapper" id="mainWrapper">
+
+        <div class="page-topbar">
+            <span class="page-crumb">
+                SafeRoute
+                <span class="page-crumb-sep">/</span>
+                <span class="page-crumb-current">Dashboard</span>
+            </span>
+            <div class="page-topbar-actions">
+                <a href="{% url 'index' %}" class="page-action-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            {% block content %}
+            {% endblock content %}
+        </main>
+
+    </div>
+
+    <script>
+        const sidebar   = document.getElementById('sidebar');
+        const overlay   = document.getElementById('mobileOverlay');
+        const pullTab   = document.getElementById('pullTab');
+        const mobToggle = document.getElementById('mobileToggle');
+        const isMobile  = () => window.innerWidth <= 768;
+
+        function openSidebar() {
+            sidebar.classList.add('expanded');
+            if (isMobile()) overlay.classList.add('show');
+            else document.body.classList.add('sidebar-open');
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('expanded');
+            overlay.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        }
+        function toggleSidebar() {
+            sidebar.classList.contains('expanded') ?
+            closeSidebar() : openSidebar();
+        }
+
+        pullTab  && pullTab.addEventListener('click', toggleSidebar);
+        mobToggle && mobToggle.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        if (!isMobile() && localStorage.getItem('sidebarOpen') === 'true') openSidebar();
+        sidebar.addEventListener('transitionend', () => {
+            if (!isMobile()) localStorage.setItem('sidebarOpen', sidebar.classList.contains('expanded'));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Police Registration | SafeRoute</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  
+  <style>
+    :root {
+      --bg: #fff9f5;
+      --white: #ffffff;
+      --ink: #1a1a2e;
+      --ink2: #2d2d4e;
+      --muted: #888888;
+      --border: #ffe4d0;
+      --orange: #ff6b35;
+      --orange-dk: #e85520;
+      --orange-lt: #fff5f0;
+      --teal: #0d9488;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --green: #10b981;
+      --gold-text: #f7c59f;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    /* Grid Overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .form-container { width: 100%; max-width: 540px; position: relative; }
+
+    .form-box {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.04);
+      animation: fadeIn 0.38s ease;
+    }
+
+    /* Typography */
+    h2 {
+      font-weight: 700;
+      font-size: 2.4rem;
+      letter-spacing: -1.5px;
+      color: var(--ink);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 300;
+      margin-bottom: 30px;
+    }
+
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .logo-square {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .role-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--orange);
+      background: var(--orange-lt);
+      padding: 4px 12px;
+      border-radius: 50px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      z-index: 1;
+    }
+
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      transition: all 0.3s ease;
+    }
+
+    .step-item.active .step-circle {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+    }
+
+    .step-item.completed .step-circle {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: var(--white);
+    }
+
+    .step-label {
+      margin-top: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    /* Input Fields */
+    .field-group { margin-bottom: 20px; }
+
+    .field-group label {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 16px;
+      height: 52px;
+      transition: all 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+
+    .input-wrapper input, .input-wrapper select {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      color: var(--ink);
+    }
+
+    .input-wrapper .icon {
+      color: var(--muted);
+      font-size: 18px;
+      margin-right: 12px;
+      display: flex;
+    }
+
+    /* SOS-style Liveness Button */
+    .liveness-trigger {
+      width: 100%;
+      padding: 16px;
+      background: var(--orange-lt);
+      border: 2px dashed var(--orange);
+      border-radius: 12px;
+      color: var(--orange);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: 0.2s;
+    }
+
+    .liveness-trigger:hover {
+      background: var(--white);
+      transform: translateY(-2px);
+    }
+
+    .liveness-trigger.captured {
+      background: #f0fdf4;
+      border: 2px solid var(--green);
+      color: var(--green);
+    }
+
+    /* Action Buttons */
+    .btn-action {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 10px;
+      padding: 14px 24px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: none;
+    }
+
+    .btn-primary-sr {
+      background: var(--ink);
+      color: var(--white);
+      flex: 2;
+    }
+
+    .btn-primary-sr:hover {
+      background: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,107,53,0.3);
+    }
+
+    .btn-ghost-sr {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .btn-ghost-sr:hover:not(:disabled) {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .form-footer a {
+      color: var(--orange);
+      text-decoration: none;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-step { display: none; }
+    .form-step.active { display: block; animation: fadeIn 0.4s ease; }
+    
+    /* Modal Styling */
+    .modal-content { border-radius: 16px; border: none; background: var(--bg); }
+    .modal-header { border-bottom: 1px solid var(--border); padding: 20px; }
+    .modal-title { font-weight: 700; font-family: 'Space Grotesk'; }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <div class="form-box">
+      <div class="brand-header">
+        <div class="logo-square">
+          <ion-icon name="shield-half-outline"></ion-icon>
+        </div>
+        <span class="role-badge">Law Enforcement Portal</span>
+      </div>
+      
+      <h2>Register</h2>
+      <p class="form-subtitle">Identity verification for official SafeRoute access.</p>
+
+      <div class="progress-steps">
+        <div class="step-item active" data-step="0">
+          <div class="step-circle">01</div>
+          <span class="step-label">Account</span>
+        </div>
+        <div class="step-item" data-step="1">
+          <div class="step-circle">02</div>
+          <span class="step-label">Identity</span>
+        </div>
+        <div class="step-item" data-step="2">
+          <div class="step-circle">03</div>
+          <span class="step-label">Verify</span>
+        </div>
+      </div>
+
+      <form id="signup-form" method="POST" action="{% url 'signup_police' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-step active">
+          <div class="field-group">
+            <label>Official Email</label>
+            <div class="input-wrapper">
+              <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+              <input type="email" name="email" placeholder="officer@police.gov.in" required>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+              <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+              <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-step">
+          <div class="field-group">
+            <label>Station Name</label>
+            <div class="input-wrapper">
+              <span class="icon"><ion-icon name="business-outline"></ion-icon></span>
+              <input type="text" name="station_name" placeholder="Enter assigned station" required>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Badge ID</label>
+            <div class="input-wrapper">
+              <span class="icon"><ion-icon name="id-card-outline"></ion-icon></span>
+              <input type="text" name="badge_id" placeholder="Official Badge Number" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-step">
+          <div class="field-group">
+            <label>Liveness Check</label>
+            <button type="button" class="liveness-trigger" id="start-verification" data-bs-toggle="modal" data-bs-target="#verificationModal">
+              <ion-icon name="videocam-outline"></ion-icon>
+              Start Biometric Capture
+            </button>
+          </div>
+          <input type="hidden" id="liveness_video" name="liveness_video" required>
+        </div>
+
+        <div class="d-flex gap-3 mt-4">
+          <button type="button" id="prev-btn" class="btn-action btn-ghost-sr" disabled>Back</button>
+          <button type="button" id="next-btn" class="btn-action btn-primary-sr">Next Step</button>
+          <button type="submit" id="submit-btn" class="btn-action btn-primary-sr" style="display:none;">Complete</button>
+        </div>
+      </form>
+
+      <div class="form-footer">
+        <p class="mb-0" style="font-size: 0.8rem; color: var(--muted);">
+          Registered officer? <a href="{% url 'login' %}">Login Here →</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="verificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Liveness Verification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <video id="live-video" autoplay muted playsinline style="width:100%; border-radius:12px; background:#1a1a2e;"></video>
+          <button id="capture-btn" class="btn-action btn-primary-sr mt-3 w-100">Record 3s Clip</button>
+          <div id="capture-status" class="mt-2" style="display:none; color: var(--teal); font-family: 'Space Mono'; font-size: 0.7rem;">✓ Captured</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const steps = document.querySelectorAll('.form-step');
+    const stepItems = document.querySelectorAll('.step-item');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    let currentStep = 0;
+
+    function updateStep(n) {
+      steps.forEach((s, i) => s.classList.toggle('active', i === n));
+      stepItems.forEach((item, i) => {
+        item.classList.toggle('active', i === n);
+        item.classList.toggle('completed', i < n);
+      });
+      
+      prevBtn.disabled = (n === 0);
+      if (n === steps.length - 1) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'flex';
+      } else {
+        nextBtn.style.display = 'flex';
+        submitBtn.style.display = 'none';
+      }
+    }
+
+    nextBtn.addEventListener('click', () => { currentStep++; updateStep(currentStep); });
+    prevBtn.addEventListener('click', () => { currentStep--; updateStep(currentStep); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+!-- ================================================================
+  LAYER 4B — manage_contacts.html
+  Save this as: templates/manage_contacts.html
+  (This is a standalone template — style it to match your dashboard)
+================================================================ -->
+<!--
+  SAVE AS: templates/manage_contacts.html
+  LINKED FROM: citizen dashboard settings / profile page
+  ACCESS URL:  /sos/contacts/
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Emergency Contacts — SafetyNet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f; --surface: #13131a; --surface2: #1c1c28;
+      --border: #2a2a3d; --accent: #e8214f;
+      --text: #f0f0f8; --muted: #8888aa;
+      --success: #22c55e; --radius: 12px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+    .back-link { color: var(--muted); text-decoration: none; font-size: .85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 1.5rem; transition: color .2s; }
+    .back-link:hover { color: var(--text); }
+    h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: .3rem; }
+    .subtitle { color: var(--muted); font-size: .88rem; margin-bottom: 2rem; }
+ 
+    /* Messages */
+    .msg { padding: 10px 14px; border-radius: 8px; font-size: .85rem; margin-bottom: .6rem; }
+    .msg.success { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3); color: #86efac; }
+    .msg.error   { background: rgba(232,33,79,.1); border: 1px solid rgba(232,33,79,.3); color: #fca5a5; }
+ 
+    /* Contact card */
+    .contact-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem;
+    }
+    .contact-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+    .contact-name { font-weight: 600; font-size: 1rem; }
+    .contact-rel  { font-size: .75rem; color: var(--accent); background: rgba(232,33,79,.12); padding: 2px 10px; border-radius: 20px; }
+    .contact-phone { color: var(--muted); font-size: .88rem; margin-bottom: .8rem; }
+    .contact-actions { display: flex; gap: .6rem; }
+    .btn-sm {
+      padding: 7px 14px; border-radius: 8px; font-size: .8rem; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: inherit; transition: all .2s;
+    }
+    .btn-sm:hover { color: var(--text); border-color: var(--text); }
+    .btn-sm.danger:hover { color: #fca5a5; border-color: #e8214f; background: rgba(232,33,79,.08); }
+ 
+    /* Inline edit form */
+    .edit-form { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .edit-form.open { display: block; }
+    .field { margin-bottom: .8rem; }
+    .field label { display: block; font-size: .72rem; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 5px; }
+    .field input, .field select { width: 100%; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .88rem; outline: none; }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    .btn-save { padding: 9px 18px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-weight: 600; font-size: .85rem; cursor: pointer; font-family: inherit; transition: background .2s; }
+    .btn-save:hover { background: #c91840; }
+    .btn-cancel-edit { padding: 9px 14px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: .85rem; cursor: pointer; font-family: inherit; }
+ 
+    /* Add contact section */
+    .add-section { background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; padding: 1.4rem; margin-top: .5rem; }
+    .add-section h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--muted); }
+    .btn-add { padding: 10px 20px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-weight: 600; font-size: .88rem; cursor: pointer; font-family: inherit; transition: background .2s; }
+    .btn-add:hover { background: #c91840; }
+ 
+    /* Empty state */
+    .empty { text-align: center; padding: 2rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+ 
+  <a href="{% url 'citizen_home' %}" class="back-link">← Back to Dashboard</a>
+ 
+  <h1>Emergency Contacts</h1>
+  <p class="subtitle">Keep 2–3 trusted contacts. They'll receive your live GPS link when you trigger SOS.</p>
+ 
+  {% if messages %}
+    {% for m in messages %}
+    <div class="msg {% if m.tags == 'error' %}error{% else %}success{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+ 
+  {% if contacts %}
+    {% for c in contacts %}
+    <div class="contact-card">
+      <div class="contact-top">
+        <span class="contact-name">{{ c.name }}</span>
+        {% if c.relationship %}<span class="contact-rel">{{ c.relationship }}</span>{% endif %}
+      </div>
+      <div class="contact-phone">📞 {{ c.phone }}</div>
+      <div class="contact-actions">
+        <button class="btn-sm" onclick="toggleEdit('edit_{{ c.id }}')">✏ Edit</button>
+        <form method="POST" style="display:inline;" onsubmit="return confirm('Remove {{ c.name }}?')">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete"/>
+          <input type="hidden" name="contact_id" value="{{ c.id }}"/>
+          <button type="submit" class="btn-sm danger">✕ Remove</button>
+        </form>
+      </div>
+ 
+      <!-- Inline edit form -->
+      <div class="edit-form" id="edit_{{ c.id }}">
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="edit"/>
+          <input type="hidden" name="contact_id" value="{{ c.id }}"/>
+          <div class="field">
+            <label>Full Name</label>
+            <input type="text" name="name" value="{{ c.name }}" required/>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>Phone (10 digits)</label>
+              <input type="tel" name="phone" value="{{ c.phone }}" maxlength="10" required/>
+            </div>
+            <div class="field">
+              <label>Relationship</label>
+              <select name="relationship">
+                {% for rel in "Parent,Spouse,Sibling,Child,Friend,Colleague,Neighbour,Other"|split:"," %}
+                <option value="{{ rel }}" {% if c.relationship == rel %}selected{% endif %}>{{ rel }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:.6rem;">
+            <button type="submit" class="btn-save">Save Changes</button>
+            <button type="button" class="btn-cancel-edit" onclick="toggleEdit('edit_{{ c.id }}')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty">No emergency contacts yet. Add at least 2 below.</div>
+  {% endif %}
+ 
+  <!-- Add new contact -->
+  {% if contacts.count < 3 %}
+  <div class="add-section">
+    <h3>＋ Add a contact</h3>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add"/>
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" name="name" placeholder="Contact's full name" required/>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" name="phone" placeholder="10-digit number" maxlength="10" required/>
+        </div>
+        <div class="field">
+          <label>Relationship</label>
+          <select name="relationship">
+            <option value="">Select…</option>
+            <option>Parent</option><option>Spouse</option><option>Sibling</option>
+            <option>Child</option><option>Friend</option><option>Colleague</option>
+            <option>Neighbour</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn-add">Add Contact</button>
+    </form>
+  </div>
+  {% endif %}
+ 
+</div>
+<script>
+  function toggleEdit(id) {
+    var el = document.getElementById(id);
+    el.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

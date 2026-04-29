@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeRoute | SafeRote AI</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            /* SafeRoute Color Palette */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* Typography */
+            --mono: 'Space Mono', monospace;
+            --sans: 'Space Grotesk', sans-serif;
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; }
+
+        body {
+            font-family: var(--sans);
+            font-weight: 300;
+            line-height: 1.75;
+            background-color: var(--bg);
+            color: var(--ink);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 500px; /* Slightly wider for better text flow */
+            overflow: hidden;
+        }
+
+        /* ── LEFT PANEL — DARK SECTION ───────────────────────────── */
+        .left-panel {
+            background: var(--ink);
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            position: relative; overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+
+        /* Topbar */
+        .left-topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 24px 48px;
+            border-bottom: 1px solid rgba(255, 228, 208, 0.1);
+            position: relative; z-index: 2;
+        }
+        .brand { display:flex; align-items:center; gap:12px; text-decoration:none; }
+        .brand-logo-sq {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-size: 1.2rem;
+        }
+        .brand-text {
+            font-family: var(--sans); font-weight: 700;
+            font-size: 1.4rem; letter-spacing: -1px; color: var(--white);
+        }
+
+        .ai-tag {
+            font-family: var(--mono); font-size: 0.6rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--gold-text);
+            border: 1px solid rgba(247, 197, 159, 0.3); padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(247, 197, 159, 0.05);
+        }
+
+        /* Body */
+        .left-body {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; padding: 48px;
+            position: relative; z-index: 2;
+        }
+        .left-eyebrow {
+            font-family: var(--mono); font-size: 0.62rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--orange);
+            display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+        }
+        .left-eyebrow::before { content:''; width:24px; height:2px; background:var(--orange); }
+        .left-headline {
+            font-family: var(--sans); font-weight: 700;
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            line-height: 1.1; letter-spacing: -2px;
+            color: var(--white); margin-bottom: 24px;
+        }
+        .left-headline .accent { color: var(--orange); }
+        
+        .left-sub {
+            font-size: 0.95rem; font-weight: 300;
+            line-height: 1.8; color: var(--gold-text);
+            max-width: 480px; margin-bottom: 48px; opacity: 0.9;
+        }
+
+        /* Capabilities */
+        .capabilities { display:flex; flex-direction:column; gap:16px; }
+        .cap-item { display:flex; align-items:center; gap:16px; }
+        .cap-icon {
+            width:36px; height:36px; flex-shrink:0; border-radius: 8px;
+            border:1px solid rgba(255, 107, 53, 0.3);
+            background: rgba(255, 107, 53, 0.08);
+            display:flex; align-items:center; justify-content:center;
+            color:var(--orange); font-size:0.85rem;
+        }
+        .cap-text {
+            font-family: var(--mono); font-size: 0.65rem;
+            letter-spacing: 1px; color: var(--white); text-transform: uppercase;
+        }
+
+        /* Footer */
+        .left-footer {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:24px 48px;
+            border-top:1px solid rgba(255, 228, 208, 0.1);
+            position:relative; z-index:2;
+        }
+        .footer-item {
+            font-family: var(--mono); font-size: 0.6rem;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-text);
+            display: flex; align-items: center; gap: 8px; opacity: 0.7;
+        }
+        .live-dot {
+            width:8px; height:8px; background:var(--green);
+            border-radius:50%; animation:blink 1.8s step-start infinite;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+
+        /* ── RIGHT PANEL — WARM CHAT ────────────────────────── */
+        .chat-panel {
+            background: var(--bg);
+            display: flex; flex-direction: column;
+        }
+
+        /* Chat header */
+        .chat-header {
+            background: rgba(255,252,248,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 32px;
+            display: flex; align-items: center; gap: 12px;
+            flex-shrink: 0; z-index: 100;
+        }
+        .chat-header-dot {
+            width:8px; height:8px;
+            background:var(--orange); border-radius:50%;
+            animation:pulse 2.5s ease-in-out infinite; flex-shrink:0;
+        }
+        .chat-header-title {
+            font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink);
+        }
+        .chat-header-sub {
+            font-family: var(--mono); font-size: 0.6rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            margin-left: auto;
+        }
+
+        /* Chat box */
+        .chat-box {
+            flex:1; padding: 32px;
+            overflow-y:auto;
+            display:flex; flex-direction:column; gap:20px;
+            scroll-behavior:smooth;
+        }
+        .chat-box::-webkit-scrollbar { width:6px; }
+        .chat-box::-webkit-scrollbar-track { background: transparent; }
+        .chat-box::-webkit-scrollbar-thumb { background: var(--border); border-radius:10px; }
+
+        /* Messages */
+        .message {
+            max-width: 85%; padding: 18px 24px;
+            font-size: 0.9rem; line-height: 1.75;
+            animation: msgIn 0.38s ease forwards;
+            border-radius: 12px;
+        }
+        @keyframes msgIn { 
+            from { opacity:0; transform:translateY(8px); } 
+            to { opacity:1; transform:translateY(0); } 
+        }
+
+        /* User — Primary Accent */
+        .message.user {
+            align-self: flex-end;
+            background: var(--orange); color: var(--white);
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 6px 20px rgba(255,107,53,0.25);
+        }
+
+        /* Bot — White Card */
+        .message.bot {
+            align-self: flex-start;
+            background: var(--white); color: var(--ink);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .message.bot .msg-label {
+            font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 8px; display: block;
+        }
+
+        /* Severity Tags - SafeRoute Status Badges */
+        .severity-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--mono); font-size: 0.55rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 6px 12px; margin-top: 14px;
+            border-radius: 50px; border: 1px solid transparent;
+        }
+        .severity-tag.high   { color: var(--rose); background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.2); }
+        .severity-tag.medium { color: var(--amber); background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); }
+        .severity-tag.low    { color: var(--green); background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.2); }
+
+        /* Typing */
+        .typing-indicator {
+            align-self: flex-start;
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 16px 24px; border-radius: 12px;
+            display: none; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-left: 32px;
+        }
+        .typing-indicator.visible { display:flex; }
+        .typing-dot {
+            width:6px; height:6px; background: var(--orange);
+            border-radius:50%; animation:typePulse 1.2s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay:0.2s; }
+        .typing-dot:nth-child(3) { animation-delay:0.4s; }
+
+        /* Empty state */
+        .empty-state {
+            align-self:center; margin:auto;
+            text-align:center; padding:32px;
+            display:flex; flex-direction:column; align-items:center; gap:16px;
+        }
+        .empty-icon { font-size:2.5rem; color: var(--border); }
+        .empty-label {
+            font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+        }
+
+        /* Prompts / Quick Select */
+        .prompts-row {
+            display:flex; gap:10px; flex-wrap:wrap;
+            padding: 16px 32px 0;
+            background: var(--bg);
+        }
+        .prompt-chip {
+            font-family: var(--mono); font-size: 0.55rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); border: 1px solid var(--border);
+            padding: 8px 16px; cursor: pointer; border-radius: 50px;
+            background: var(--white); transition: all 0.2s ease;
+        }
+        .prompt-chip:hover {
+            color: var(--orange); border-color: var(--orange);
+            background: var(--orange-lt); transform: translateY(-2px);
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 24px 32px 32px;
+            background: var(--bg);
+            display:flex; align-items:center; gap:12px;
+            flex-shrink:0;
+        }
+        #messageInput {
+            flex:1; padding: 16px 20px;
+            background: var(--white);
+            border: 1px solid var(--border); border-radius: 12px;
+            outline: none;
+            font-family: var(--sans); font-size: 0.9rem;
+            color: var(--ink); transition: all 0.2s;
+        }
+        #messageInput:focus { 
+            border-color: var(--orange); 
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.1); 
+        }
+        #messageInput::placeholder { color: var(--muted); font-weight: 300; }
+        
+        #sendBtn {
+            width: 54px; height: 54px; flex-shrink: 0;
+            background: var(--orange); color: var(--white);
+            border: none; border-radius: 12px; cursor: pointer; font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 20px rgba(255,107,53,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+            transition: all 0.2s ease;
+        }
+        #sendBtn:hover:not(:disabled) { 
+            transform: translateY(-2px);
+            background: var(--orange-dk);
+            box-shadow: 0 8px 24px rgba(255,107,53,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+        }
+        #sendBtn:disabled { background: var(--border); box-shadow: none; cursor:not-allowed; color: var(--muted); }
+
+        /* Animations */
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 107, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+        }
+        @keyframes typePulse { 
+            0%,100% { opacity:0.3; transform:scale(0.8); } 
+            50% { opacity:1; transform:scale(1.2); } 
+        }
+
+        @media(max-width:900px) {
+            body { grid-template-columns:1fr; }
+            .left-panel { display:none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="left-panel">
+        <div class="left-topbar">
+            <a href="/" class="brand">
+                <div class="brand-logo-sq"><i class="fas fa-shield-alt"></i></div>
+                <span class="brand-text">SafeRoute</span>
+            </a>
+            <span class="ai-tag">AI Engine</span>
+        </div>
+
+        <div class="left-body">
+            <div class="left-eyebrow">Intelligent Support</div>
+            <h1 class="left-headline">ASK<br>Safe<span class="accent">Route.</span></h1>
+            <p class="left-sub">
+                Your AI-powered assistant for crime reporting, safety scores, area intelligence, and platform guidance — available around the clock.
+            </p>
+            <div class="capabilities">
+                <div class="cap-item"><div class="cap-icon"><i class="fas fa-flag"></i></div><span class="cap-text">Guide you through filing a crime report</span></div>
+                <div class="cap-item"><div class="cap-icon"><i class="fas fa-shield-alt"></i></div><span class="cap-text">Explain area safety scores and predictions</span></div>
+                <div class="cap-item"><div class="cap-icon"><i class="fas fa-map-marked-alt"></i></div><span class="cap-text">Provide crime intelligence for your district</span></div>
+                <div class="cap-item"><div class="cap-icon"><i class="fas fa-question-circle"></i></div><span class="cap-text">Answer any question about the platform</span></div>
+            </div>
+        </div>
+
+        <div class="left-footer">
+            <div class="footer-item"><span class="live-dot"></span> AI Online</div>
+            <div class="footer-item">SafeRoute v2.0</div>
+            <div class="footer-item"><i class="fas fa-lock" style="font-size:0.55rem;"></i> Encrypted</div>
+        </div>
+    </div>
+
+    <div class="chat-panel">
+        <div class="chat-header">
+            <span class="chat-header-dot"></span>
+            <span class="chat-header-title">SafeRoute AI</span>
+            <span class="chat-header-sub">Always on</span>
+        </div>
+
+        <div id="chatBox" class="chat-box">
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-comments empty-icon"></i>
+                <div class="empty-label">Start a conversation</div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+
+        <div class="prompts-row">
+            <button class="prompt-chip" onclick="usePrompt('How do I report a crime?')">How to report a crime</button>
+            <button class="prompt-chip" onclick="usePrompt('What is the safety score for my area?')">Area safety score</button>
+            <button class="prompt-chip" onclick="usePrompt('How does AI prediction work?')">AI prediction</button>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Ask SafeRoute AI...">
+            <button id="sendBtn" onclick="sendMessage()" title="Send">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox         = document.getElementById('chatBox');
+        const input           = document.getElementById('messageInput');
+        const sendBtn         = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        let   emptyState      = document.getElementById('emptyState');
+
+        function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+            if (emptyState) { emptyState.remove(); emptyState = null; }
+            appendMessage('user', message);
+            input.value = '';
+            sendBtn.disabled = true;
+            typingIndicator.classList.add('visible');
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            fetch('/chatbot/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ message })
+            })
+            .then(r => r.json())
+            .then(data => {
+                typingIndicator.classList.remove('visible');
+                appendMessage('bot', data.response, data.severity);
+                sendBtn.disabled = false;
+            })
+            .catch(err => {
+                typingIndicator.classList.remove('visible');
+                appendMessage('bot', 'Connection error. Please try again.', null);
+                sendBtn.disabled = false;
+                console.error('Error:', err);
+            });
+        }
+
+        function appendMessage(sender, text, severity = null) {
+            const msg = document.createElement('div');
+            msg.classList.add('message', sender);
+            if (sender === 'bot') {
+                const label = document.createElement('span');
+                label.classList.add('msg-label');
+                label.textContent = 'SafeRoute AI';
+                msg.appendChild(label);
+            }
+            const content = document.createElement('div');
+            content.innerHTML = text.replace(/\n/g, '<br>');
+            msg.appendChild(content);
+            if (severity !== null) {
+                const tag = document.createElement('div');
+                tag.classList.add('severity-tag');
+                if (severity >= 0.8)      { tag.classList.add('high');   tag.innerHTML = '<i class="fas fa-exclamation-circle" style="font-size:0.6rem;"></i> High severity · ' + severity; }
+                else if (severity >= 0.5) { tag.classList.add('medium'); tag.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size:0.6rem;"></i> Medium severity · ' + severity; }
+                else                       { tag.classList.add('low');    tag.innerHTML = '<i class="fas fa-check-circle" style="font-size:0.6rem;"></i> Low severity · ' + severity; }
+                msg.appendChild(tag);
+            }
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function usePrompt(text) { input.value = text; input.focus(); }
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+
+        function getCookie(name) {
+            let value = null;
+            if (document.cookie) {
+                for (const c of document.cookie.split(';')) {
+                    const t = c.trim();
+                    if (t.startsWith(name + '=')) { value = decodeURIComponent(t.slice(name.length + 1)); break; }
+                }
+            }
+            return value;
+        }
+    </script>
+</body>
+</html>

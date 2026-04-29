@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+        /* SAFEROUTE COLOR PALETTE */
+        --bg:        #fff9f5;
+        --white:     #ffffff;
+        --ink:       #1a1a2e;
+        --ink2:      #2d2d4e;
+        --muted:     #888888;
+        --border:    #ffe4d0;
+        --orange:    #ff6b35;
+        --orange-dk: #e85520;
+        --orange-lt: #fff5f0;
+        --teal:      #0d9488;
+        --amber:     #f59e0b;
+        --rose:      #f43f5e;
+        --green:     #10b981;
+        --gold-text: #f7c59f;
+
+        /* SAFEROUTE TYPOGRAPHY */
+        --font-head: 'Space Grotesk', sans-serif;
+        --font-mono: 'Space Mono', monospace;
+        --font-body: 'Space Grotesk', sans-serif;
+    }
+
+    * { font-family: var(--font-body); }
+
+    /* ── PAGE HEADER ────────────────────────────── */
+    .report-header {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: flex-end; justify-content: space-between;
+        animation: fadeUpIn 0.38s ease forwards;
+    }
+    @keyframes fadeUpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .report-eyebrow {
+        font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--orange);
+        display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .report-eyebrow::before { content: ''; width: 16px; height: 2px; background: var(--orange); }
+    .report-title {
+        font-family: var(--font-head); font-size: 2.8rem; font-weight: 700;
+        color: var(--ink); letter-spacing: -1.5px; line-height: 1.1; margin: 0;
+    }
+
+    /* ── STEPPER ────────────────────────────────── */
+    .stepper {
+        display: flex; align-items: center; gap: 0; margin-bottom: 32px;
+        border: 1.5px solid var(--border); border-radius: 12px;
+        background: var(--white); overflow: hidden;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+        animation: fadeUpIn 0.45s ease forwards;
+    }
+    .step-item {
+        flex: 1; display: flex; align-items: center; gap: 16px;
+        padding: 18px 24px; border-right: 1.5px solid var(--border);
+        position: relative; transition: all 0.2s ease;
+    }
+    .step-item:last-child { border-right: none; }
+    
+    .step-num {
+        width: 32px; height: 32px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;
+        border: 1.5px solid var(--border); border-radius: 50%;
+        color: var(--muted); background: var(--bg); transition: all 0.2s ease;
+    }
+    
+    .step-label {
+        font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+        transition: color 0.2s ease; margin-bottom: 2px;
+    }
+    .step-sub { font-size: 0.8rem; color: #aaa; transition: color 0.2s ease; }
+
+    /* Active state */
+    .step-item.active { background: var(--orange-lt); }
+    .step-item.active .step-num { background: var(--orange); border-color: var(--orange); color: var(--white); }
+    .step-item.active .step-label { color: var(--ink); }
+    .step-item.active .step-sub { color: var(--muted); }
+    
+    /* Completed state */
+    .step-item.completed { background: rgba(16,185,129,0.04); }
+    .step-item.completed .step-num { background: var(--green); border-color: var(--green); color: var(--white); }
+    .step-item.completed .step-label { color: var(--ink); }
+    .step-item.completed .step-sub { color: var(--muted); }
+
+    /* ── FORM SHELL ─────────────────────────────── */
+    .form-shell {
+        background: var(--white); border: 1.5px solid var(--border);
+        border-radius: 16px; overflow: hidden;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+        animation: fadeUpIn 0.5s ease forwards;
+    }
+    .form-shell-header {
+        background: var(--ink); padding: 20px 28px;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 16px;
+    }
+    .form-shell-title {
+        font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--white);
+    }
+    .form-shell-step-badge {
+        font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        color: var(--gold-text); background: rgba(247, 197, 159, 0.1);
+        border: 1px solid rgba(247, 197, 159, 0.3); border-radius: 50px; padding: 4px 12px;
+    }
+    .form-shell-body { padding: 40px 32px; }
+
+    /* ── FORM ELEMENTS ──────────────────────────── */
+    .field { margin-bottom: 24px; }
+    .field label {
+        display: block; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+    }
+    .field label .req { color: var(--rose); margin-left: 4px; }
+
+    input[type="text"], input[type="date"], input[type="time"], textarea, select {
+        width: 100%; padding: 14px 16px; background: var(--bg);
+        border: 1.5px solid var(--border); border-radius: 10px;
+        font-family: var(--font-head); font-size: 0.85rem; color: var(--ink);
+        outline: none; transition: all 0.2s ease; appearance: none;
+    }
+    input:focus, textarea:focus, select:focus {
+        border-color: var(--orange); background: var(--white);
+        box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
+    }
+    textarea { resize: vertical; min-height: 120px; }
+
+    /* Custom select arrow */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+        content: '\f107'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+        position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+        color: var(--muted); font-size: 0.8rem; pointer-events: none;
+    }
+
+    /* Location input */
+    .location-wrap { position: relative; }
+    .location-wrap i {
+        position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+        color: var(--muted); font-size: 0.85rem; pointer-events: none; transition: color 0.2s ease;
+    }
+    .location-wrap:focus-within i { color: var(--orange); }
+    .location-wrap input { padding-left: 44px; }
+
+    /* Suggestions dropdown */
+    .suggestions {
+        border: 1.5px solid var(--border); border-top: none;
+        border-radius: 0 0 10px 10px; max-height: 180px; overflow-y: auto;
+        background: var(--white); position: absolute; z-index: 1000; width: 100%;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+    }
+    .suggestions div {
+        padding: 12px 16px; cursor: pointer; font-family: var(--font-head); font-size: 0.82rem;
+        border-bottom: 1px solid var(--border); color: var(--ink); transition: background 0.2s ease;
+    }
+    .suggestions div:last-child { border-bottom: none; }
+    .suggestions div:hover { background: var(--orange-lt); color: var(--orange); }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* ── FILE INPUTS ────────────────────────────── */
+    .file-zone {
+        border: 1.5px dashed var(--border); border-radius: 12px;
+        padding: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+        background: var(--bg); transition: all 0.2s ease;
+    }
+    .file-zone:hover { border-color: var(--orange); background: var(--orange-lt); }
+    .file-label-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 1px; text-transform: uppercase;
+        background: var(--white); border: 1.5px solid var(--border); border-radius: 8px;
+        color: var(--ink); padding: 10px 18px; cursor: pointer; transition: all 0.2s ease;
+    }
+    .file-zone:hover .file-label-btn { border-color: var(--orange); color: var(--orange); }
+    input[type="file"] { display: none; }
+    .file-name-display { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.5px; color: var(--muted); }
+
+    /* ── BUTTONS ────────────────────────────────── */
+    .btn-row { display: flex; gap: 16px; margin-top: 32px; }
+    
+    .btn-primary {
+        background: var(--orange); color: var(--white); border: none; border-radius: 10px;
+        font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 1px; text-transform: uppercase; padding: 14px 24px;
+        cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        box-shadow: 0 6px 20px rgba(255,107,53,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+        transition: all 0.2s ease; flex: 1;
+    }
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px); background: var(--orange-dk);
+        box-shadow: 0 8px 25px rgba(255,107,53,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+    }
+    
+    .btn-ghost {
+        background: var(--white); color: var(--ink); border: 1.5px solid var(--border); border-radius: 10px;
+        font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 1px; text-transform: uppercase; padding: 14px 24px;
+        cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        transition: all 0.2s ease; flex: 1;
+    }
+    .btn-ghost:hover { border-color: var(--orange); background: var(--orange-lt); color: var(--orange); }
+    
+    .btn-primary:disabled { background: var(--border); box-shadow: none; color: var(--muted); cursor: not-allowed; transform: none; }
+
+    /* ── VERIFICATION BOX ───────────────────────── */
+    #verification-box {
+        border: 1.5px solid var(--border); border-radius: 12px;
+        background: var(--bg); padding: 24px; margin-top: 24px;
+    }
+    .verify-label {
+        font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .verify-label .scan-dot {
+        width: 8px; height: 8px; background: var(--orange); border-radius: 50%;
+        animation: blink 1.2s ease-in-out infinite; display: none;
+    }
+    .scanning .verify-label .scan-dot { display: inline-block; }
+    @keyframes blink { 0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(255,107,53,0.4);} 50%{opacity:0.4; box-shadow:0 0 0 6px rgba(255,107,53,0);} }
+
+    .progress-track {
+        width: 100%; height: 4px; border-radius: 4px; background: var(--border);
+        margin-bottom: 16px; overflow: hidden;
+    }
+    .progress-fill { height: 100%; width: 0%; background: var(--teal); transition: width 0.3s ease; }
+    .scanning .progress-fill {
+        background: repeating-linear-gradient(90deg, var(--orange) 0px, var(--orange) 12px, #fff5f0 12px, #fff5f0 24px);
+        background-size: 200%; animation: scan-march 1s linear infinite;
+    }
+    @keyframes scan-march { from{background-position:0} to{background-position:-200%} }
+
+    #status-text { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+    .scanning #status-text { color: var(--orange); }
+
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 1px; text-transform: uppercase; padding: 8px 14px; border-radius: 50px; margin-top: 8px;
+    }
+    .status-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
+    .status-error   { background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: var(--rose); }
+
+    /* ── STEP 3 CONFIRM BOX ─────────────────────── */
+    .confirm-box {
+        border: 1.5px solid var(--border); border-radius: 12px;
+        background: var(--bg); padding: 32px; margin-bottom: 24px; text-align: center;
+    }
+    .confirm-icon { font-size: 2.5rem; color: var(--teal); margin-bottom: 16px; }
+    .confirm-title { font-family: var(--font-head); font-size: 1.6rem; font-weight: 700; color: var(--ink); margin-bottom: 12px; letter-spacing: -0.5px; }
+    .confirm-body { font-size: 0.9rem; font-weight: 300; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+    .confirm-note {
+        font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+        letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+        padding-top: 20px; border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+        .field-row { grid-template-columns: 1fr; gap: 0; }
+        .stepper { flex-direction: column; border-radius: 12px; }
+        .step-item { border-right: none; border-bottom: 1.5px solid var(--border); }
+        .btn-row { flex-direction: column; }
+    }
+</style>
+
+<div class="report-header">
+    <div>
+        <div class="report-eyebrow">Citizen Reporting</div>
+        <h1 class="report-title">Report a Crime</h1>
+    </div>
+</div>
+
+<div class="stepper" id="stepper">
+    <div class="step-item active" id="indicator1">
+        <div class="step-num">1</div>
+        <div class="step-text">
+            <div class="step-label">Incident Details</div>
+            <div class="step-sub">Location, type, description</div>
+        </div>
+    </div>
+    <div class="step-item" id="indicator2">
+        <div class="step-num">2</div>
+        <div class="step-text">
+            <div class="step-label">Evidence</div>
+            <div class="step-sub">Photos & video upload</div>
+        </div>
+    </div>
+    <div class="step-item" id="indicator3">
+        <div class="step-num">3</div>
+        <div class="step-text">
+            <div class="step-label">Submission</div>
+            <div class="step-sub">Review and submit</div>
+        </div>
+    </div>
+</div>
+
+<div class="form-shell">
+    <div class="form-shell-header" id="shellHeader">
+        <span class="form-shell-step-badge" id="shellBadge">Step 1 of 3</span>
+        <span class="form-shell-title" id="shellTitle">Incident Details</span>
+    </div>
+    <div class="form-shell-body">
+
+        <form id="crime-report-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="step" id="step1">
+
+                <div class="field">
+                    <label for="crime-type">Crime Type <span class="req">*</span></label>
+                    <div class="select-wrap">
+                        <select id="crime-type" name="crime_type" required>
+                            <option value="murder">Murder</option>
+                            <option value="rape">Rape</option>
+                            <option value="domestic_violence">Domestic Violence</option>
+                            <option value="human_trafficiking">Human Trafficking</option>
+                            <option value="acid_attacks">Acid Attacks</option>
+                            <option value="harassment">Harassment</option>
+                            <option value="assault">Assault</option>
+                            <option value="eve_teasing">Eve Teasing</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="description">Crime Description <span class="req">*</span></label>
+                    <textarea id="description" name="description" placeholder="Provide a detailed description of the incident..." required></textarea>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label for="incident-date">Date of Incident <span class="req">*</span></label>
+                        <input type="date" id="incident-date" name="incident_date" required>
+                    </div>
+                    <div class="field">
+                        <label for="incident-time">Time of Incident <span class="req">*</span></label>
+                        <input type="time" id="incident-time" name="incident_time" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="victim-age-group">Victim Age Group <span class="req">*</span></label>
+                    <div class="select-wrap">
+                        <select id="victim-age-group" name="victim_age_group" required>
+                            <option value="" disabled selected>Select age group</option>
+                            <option value="under_18">Under 18</option>
+                            <option value="18_25">18 – 25</option>
+                            <option value="26_40">26 – 40</option>
+                            <option value="41_60">41 – 60</option>
+                            <option value="above_60">Above 60</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field" style="position:relative;">
+                    <label for="address">Location of Incident <span class="req">*</span></label>
+                    <div class="location-wrap">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="address" name="address" placeholder="Enter area, city, or landmark" required>
+                    </div>
+                    <div class="suggestions" id="suggestions" style="display:none;"></div>
+                    <input type="hidden" id="latitude" name="latitude">
+                    <input type="hidden" id="longitude" name="longitude">
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn-primary" onclick="nextStep(2)">
+                        Next — Evidence <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="step" id="step2" style="display:none;">
+
+                <div class="field">
+                    <label for="video">Video Evidence <span style="font-weight:400;color:var(--muted);text-transform:none;">(Optional)</span></label>
+                    <div class="file-zone">
+                        <label class="file-label-btn" for="video">
+                            <i class="fas fa-video"></i> Choose Video
+                        </label>
+                        <input type="file" id="video" name="video" accept="video/*" onchange="updateFileName(this,'videoName')">
+                        <div class="file-name-display" id="videoName">No file selected</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="photos">Photo Evidence <span class="req">*</span></label>
+                    <div class="file-zone">
+                        <label class="file-label-btn" for="photos">
+                            <i class="fas fa-camera"></i> Choose Photos
+                        </label>
+                        <input type="file" id="photos" name="photos" accept="image/*" multiple required onchange="updateFileName(this,'photoName')">
+                        <div class="file-name-display" id="photoName">No files selected</div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-ghost" id="verifyBtn" style="width:100%; margin-top:12px;">
+                    <i class="fas fa-brain" style="color:var(--orange);"></i> Verify Evidence with AI
+                </button>
+
+                <div id="uploadProgressContainer" style="display:none;">
+                    <div id="verification-box">
+                        <div class="verify-label">
+                            <span class="scan-dot"></span>
+                            <span id="status-text">Awaiting verification...</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div id="verification-result"></div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn-ghost" onclick="nextStep(1)">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button type="button" class="btn-primary" onclick="nextStep(3)" id="toStep3" disabled>
+                        Next — Review <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="step" id="step3" style="display:none;">
+
+                <div class="confirm-box">
+                    <div class="confirm-icon"><i class="fas fa-shield-check"></i></div>
+                    <div class="confirm-title">Ready to Submit</div>
+                    <p class="confirm-body">
+                        Your evidence has been verified and your report is ready to be securely transmitted to law enforcement. All information will be handled confidentially.
+                    </p>
+                    <div class="confirm-note">
+                        By submitting, you confirm that the information provided is accurate. False reporting may result in restricted platform access.
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn-ghost" onclick="nextStep(2)">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button type="submit" class="btn-primary" id="finalSubmitBtn" style="background:var(--teal); box-shadow:0 6px 20px rgba(13,148,136,0.35);">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    /* ── Step titles for shell header ── */
+    const stepMeta = {
+        1: { badge: 'Step 1 of 3', title: 'Incident Details' },
+        2: { badge: 'Step 2 of 3', title: 'Evidence Upload' },
+        3: { badge: 'Step 3 of 3', title: 'Final Submission' }
+    };
+
+    function updateProgressStepper(step) {
+        document.querySelectorAll('.step-item').forEach((el, i) => {
+            el.classList.remove('active', 'completed');
+            if (i + 1 < step)  el.classList.add('completed');
+            if (i + 1 === step) el.classList.add('active');
+        });
+        document.getElementById('shellBadge').textContent  = stepMeta[step].badge;
+        document.getElementById('shellTitle').textContent  = stepMeta[step].title;
+    }
+
+    function nextStep(step) {
+        if (step === 2) {
+            const fields = ['crime-type','description','incident-date','incident-time','victim-age-group','address'];
+            if (fields.some(id => !document.getElementById(id).value)) {
+                Swal.fire({ title: 'Incomplete', text: 'Please fill all required fields.', icon: 'warning', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e' });
+                return;
+            }
+        }
+        document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+        document.getElementById('step' + step).style.display = 'block';
+        updateProgressStepper(step);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => nextStep(1));
+
+    /* ── File name display ── */
+    function updateFileName(input, targetId) {
+        const el = document.getElementById(targetId);
+        if (input.files.length === 0) { el.textContent = 'No file selected'; return; }
+        if (input.files.length === 1) { el.textContent = input.files[0].name; return; }
+        el.textContent = `${input.files.length} files attached`;
+    }
+
+    /* ── Geocoding ── */
+    document.getElementById('address').addEventListener('input', function() {
+        const query = this.value;
+        const box = document.getElementById('suggestions');
+        if (query.length < 3) { box.innerHTML = ''; box.style.display = 'none'; return; }
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${query}`)
+            .then(r => r.json())
+            .then(data => {
+                box.innerHTML = '';
+                box.style.display = data.length > 0 ? 'block' : 'none';
+                data.forEach(loc => {
+                    const div = document.createElement('div');
+                    div.textContent = loc.display_name;
+                    div.onclick = () => {
+                        document.getElementById('address').value   = loc.display_name;
+                        document.getElementById('latitude').value  = loc.lat;
+                        document.getElementById('longitude').value = loc.lon;
+                        box.innerHTML = ''; box.style.display = 'none';
+                    };
+                    box.appendChild(div);
+                });
+            });
+    });
+
+    /* ── AI Verification ── */
+    document.getElementById('verifyBtn').addEventListener('click', function() {
+        const photos = document.getElementById('photos').files;
+        if (photos.length === 0) {
+            Swal.fire({ title: 'No photos', text: 'Upload at least one photo to verify.', icon: 'warning', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e' });
+            return;
+        }
+
+        const verifyBtn   = this;
+        const container   = document.getElementById('uploadProgressContainer');
+        const vBox        = document.getElementById('verification-box');
+        const fill        = document.getElementById('progressFill');
+        const statusText  = document.getElementById('status-text');
+        const result      = document.getElementById('verification-result');
+        const toStep3     = document.getElementById('toStep3');
+
+        verifyBtn.disabled = true;
+        toStep3.disabled   = true;
+        container.style.display = 'block';
+        vBox.classList.add('scanning');
+        result.innerHTML = '';
+        fill.style.width = '0%';
+        statusText.textContent = 'Initiating AI security scan...';
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            fill.style.width = progress + '%';
+            if (progress < 50)  statusText.textContent = `Scanning evidence metadata (${progress}%)`;
+            else                statusText.textContent = `Analysing for AI manipulation markers...`;
+            if (progress >= 100) clearInterval(interval);
+        }, 300);
+
+        setTimeout(() => {
+            const formData = new FormData();
+            const video  = document.getElementById('video').files[0];
+            const photos = document.getElementById('photos').files;
+            if (video) formData.append('video', video);
+            for (let i = 0; i < photos.length; i++) formData.append('photos', photos[i]);
+
+            fetch('/verify_evidence/', { method: 'POST', body: formData })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then(data => {
+                    vBox.classList.remove('scanning');
+                    fill.style.width = '100%';
+                    if (data.success) {
+                        statusText.textContent = 'Verification cleared.';
+                        result.innerHTML = '<div class="status-badge status-success"><i class="fas fa-check"></i> Evidence verified as authentic</div>';
+                        toStep3.disabled = false;
+                    } else {
+                        statusText.textContent = 'Verification failed.';
+                        result.innerHTML = '<div class="status-badge status-error"><i class="fas fa-times"></i> Evidence flagged — re-upload valid files</div>';
+                        Swal.fire({ title: 'Verification Failed', text: 'Evidence flagged as AI-generated or altered. Please re-upload raw files.', icon: 'error', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e' });
+                    }
+                    verifyBtn.disabled = false;
+                })
+                .catch(() => {
+                    vBox.classList.remove('scanning');
+                    statusText.textContent = 'Network secure handshake failed.';
+                    result.innerHTML = '<div class="status-badge status-error"><i class="fas fa-exclamation-triangle"></i> Network Error</div>';
+                    verifyBtn.disabled = false;
+                });
+        }, 3000);
+    });
+
+    /* ── Form submission ── */
+    document.getElementById('crime-report-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('#finalSubmitBtn');
+        btn.disabled = true;
+        const formData = new FormData(this);
+        fetch('/api/report_crime/', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                Swal.fire({
+                    title: data.success ? 'Report Securely Logged' : 'Submission Failed',
+                    text:  data.success ? 'Your report is now encrypted and routed to law enforcement.' : data.message,
+                    icon:  data.success ? 'success' : 'error',
+                    confirmButtonColor: '#0d9488', // Teal for success
+                    background: '#fff9f5',
+                    color: '#1a1a2e'
+                });
+                if (data.success) {
+                    this.reset();
+                    nextStep(1);
+                    document.getElementById('toStep3').disabled = true;
+                    document.getElementById('uploadProgressContainer').style.display = 'none';
+                    document.getElementById('verification-result').innerHTML = '';
+                    document.getElementById('videoName').textContent = 'No file selected';
+                    document.getElementById('photoName').textContent = 'No files selected';
+                }
+                btn.disabled = false;
+            })
+            .catch(() => {
+                Swal.fire({ title: 'Error', text: 'Transmission error. Please check your connection and try again.', icon: 'error', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e' });
+                btn.disabled = false;
+            });
+    });
+</script>
+
+{% endblock content %}

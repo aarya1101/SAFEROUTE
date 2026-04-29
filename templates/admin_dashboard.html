@@ -1,0 +1,600 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeRoute — Admin Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            /* SAFEROUTE COLOR PALETTE */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* SAFEROUTE TYPOGRAPHY */
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Space Grotesk', sans-serif;
+
+            --sidebar-w: 260px;
+            --topbar-h:  60px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--ink);
+            font-weight: 300;
+            font-size: 0.9rem;
+            line-height: 1.75;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── SIDEBAR ────────────────────────────── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--ink);
+            position: fixed; top: 0; left: 0; z-index: 200;
+            display: flex; flex-direction: column;
+            border-right: 1px solid var(--ink2);
+        }
+        
+        .sidebar-brand {
+            height: var(--topbar-h);
+            display: flex; align-items: center; gap: 12px;
+            padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-decoration: none;
+        }
+        .sidebar-logo {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, var(--orange), var(--amber));
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-size: 0.8rem;
+        }
+        .sidebar-wordmark {
+            font-family: var(--font-head); font-weight: 700; font-size: 1.1rem;
+            letter-spacing: -0.5px; color: var(--white);
+        }
+
+        .sidebar-inner {
+            flex: 1; padding: 32px 0 24px; overflow-y: auto;
+        }
+        .sidebar-section-label {
+            font-family: var(--font-mono); font-size: 0.58rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: #4a4a5e; padding: 0 24px 12px;
+        }
+        
+        .sidebar-nav { list-style: none; padding: 0; margin: 0 0 32px; }
+        .sidebar-nav li a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 24px;
+            font-family: var(--font-mono); font-size: 0.7rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar-nav li a i { width: 18px; text-align: center; font-size: 0.85rem; transition: color 0.2s; }
+        .sidebar-nav li a:hover {
+            color: var(--white); background: rgba(255,255,255,0.04);
+        }
+        .sidebar-nav li.active a {
+            color: var(--white); background: rgba(255,107,53,0.08);
+            border-left-color: var(--orange);
+        }
+        .sidebar-nav li.active a i { color: var(--orange); }
+        
+        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 8px 24px 24px; }
+        
+        .sidebar-footer { padding: 24px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-footer-text {
+            font-family: var(--font-mono); font-size: 0.6rem;
+            letter-spacing: 1px; color: var(--muted); text-transform: uppercase; line-height: 1.6;
+        }
+        .sidebar-footer-signal {
+            display: inline-block; width: 6px; height: 6px; background: var(--orange);
+            border-radius: 50%; margin-right: 8px; animation: blink 1.8s step-start infinite;
+        }
+
+        /* ── MAIN WRAPPER ───────────────────────── */
+        .main-wrapper { 
+            margin-left: var(--sidebar-w); flex: 1; 
+            display: flex; flex-direction: column; min-height: 100vh; 
+        }
+
+        /* Page topbar */
+        .page-topbar {
+            height: var(--topbar-h);
+            background: rgba(255,252,248,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 48px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .page-topbar-crumb {
+            font-family: var(--font-mono); font-size: 0.65rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+        }
+        .page-topbar-crumb-sep { color: var(--border); margin: 0 8px; }
+        .page-topbar-crumb-current { color: var(--ink); font-weight: 700; }
+        
+        .topbar-action-btn {
+            font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            background: none; border: none; text-decoration: none;
+            display: flex; align-items: center; gap: 8px; transition: color 0.2s;
+        }
+        .topbar-action-btn:hover { color: var(--orange); }
+
+        /* ── CONTENT ────────────────────────────── */
+        .main-content {
+            flex: 1; padding: 48px;
+            animation: fadeUpIn 0.38s ease forwards;
+        }
+        @keyframes fadeUpIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Page heading */
+        .page-heading {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            margin-bottom: 32px; padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .page-eyebrow {
+            font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--orange);
+            margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+        }
+        .page-eyebrow::before { content: ''; width: 16px; height: 2px; background: var(--orange); }
+        .page-title {
+            font-family: var(--font-head); font-size: 2.8rem; font-weight: 700;
+            color: var(--ink); letter-spacing: -1.5px; line-height: 1.1;
+        }
+        .page-count {
+            font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            margin-top: 12px;
+        }
+
+        /* ── TABLE SHELL (SAFEROUTE CARD) ───────── */
+        .table-shell {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+        }
+        
+        .table-shell-header {
+            background: var(--ink); padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .table-shell-title {
+            font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-text);
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .table { margin: 0 !important; border-collapse: collapse; width: 100%; }
+        .table thead tr { background: var(--bg); border-bottom: 1px solid var(--border); }
+        .table thead th {
+            font-family: var(--font-mono) !important; font-size: 0.6rem !important; font-weight: 700 !important;
+            letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--muted) !important;
+            padding: 16px 24px !important; border: none !important; white-space: nowrap; text-align: left;
+        }
+        .table tbody tr { border-bottom: 1px solid var(--border) !important; transition: background 0.15s ease !important; }
+        .table tbody tr:last-child { border-bottom: none !important; }
+        .table tbody tr:hover { background: var(--bg) !important; }
+        .table tbody td {
+            padding: 18px 24px !important; vertical-align: middle !important;
+            border: none !important; font-size: 0.85rem; color: var(--ink); font-family: var(--font-head);
+        }
+
+        /* Officer styling */
+        .officer-name { font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; }
+        .officer-avatar {
+            width: 32px; height: 32px; background: var(--orange-lt); color: var(--orange);
+            font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;
+            border: 1px solid var(--border); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+
+        /* Status Pills & Tags */
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 5px 12px; border: 1px solid var(--border);
+            border-radius: 50px; color: var(--muted); background: var(--bg);
+        }
+
+        /* ── BUTTONS ────────────────────────────── */
+        .btn-view {
+            background: var(--white); color: var(--ink);
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            border: 1.5px solid var(--border); border-radius: 8px;
+            padding: 6px 14px; text-decoration: none; transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-view:hover { border-color: var(--orange); background: var(--orange-lt); color: var(--orange); transform: translateY(-1px); }
+
+        .btn-approve {
+            background: rgba(16,185,129,0.1); color: var(--green);
+            border: 1.5px solid rgba(16,185,129,0.3); border-radius: 8px;
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; padding: 7px 16px;
+            transition: all 0.2s ease; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-approve:hover { background: var(--green); color: var(--white); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+
+        .btn-reject {
+            background: rgba(244,63,94,0.1); color: var(--rose);
+            border: 1.5px solid rgba(244,63,94,0.3); border-radius: 8px;
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; padding: 7px 16px;
+            transition: all 0.2s ease; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+        }
+        .btn-reject:hover { background: var(--rose); color: var(--white); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(244,63,94,0.2); }
+
+        /* Media Previews */
+        .id-card-img { width: 80px; height: 50px; object-fit: cover; border-radius: 6px; border: 1.5px solid var(--border); transition: transform 0.2s; cursor: pointer; }
+        .id-card-img:hover { transform: translateY(-2px); border-color: var(--orange); }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 60px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .empty-state i { font-size: 2.5rem; color: var(--border); }
+        .empty-state span { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+        /* ── MODALS ─────────────────────────────── */
+        .modal-content {
+            border-radius: 16px !important; border: 1.5px solid var(--border) !important;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; background: var(--bg) !important;
+            overflow: hidden;
+        }
+        .modal-header {
+            background: var(--ink) !important; border-bottom: none !important;
+            padding: 20px 24px !important; border-radius: 0 !important;
+        }
+        .modal-title {
+            font-family: var(--font-mono) !important; font-size: 0.7rem !important; font-weight: 700 !important;
+            letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--gold-text) !important;
+        }
+        .btn-close { filter: invert(1) !important; opacity: 0.5 !important; }
+        .btn-close:hover { opacity: 1 !important; }
+        .modal-body { padding: 32px !important; background: var(--bg) !important; text-align: center; }
+        .modal-body img, .modal-body video { border-radius: 12px; border: 1.5px solid var(--border); }
+
+        /* ── RESPONSIVE ─────────────────────────── */
+        @media (max-width: 900px) {
+            .sidebar { display: none !important; }
+            .main-wrapper { margin-left: 0; }
+            .main-content, .page-topbar { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar d-none d-md-flex">
+        <a href="{% url 'index' %}" class="sidebar-brand">
+            <div class="sidebar-logo"><i class="fas fa-shield-alt"></i></div>
+            <span class="sidebar-wordmark">SafeRoute</span>
+        </a>
+        
+        <div class="sidebar-inner">
+            <div class="sidebar-section-label">Navigation</div>
+            <ul class="sidebar-nav">
+                <li class="active">
+                    <a href="{% url 'admin_dashboard' %}">
+                        <i class="fas fa-th-large"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_report' %}">
+                        <i class="fas fa-folder-open"></i> Reports
+                    </a>
+                </li>
+            </ul>
+
+            <hr class="sidebar-divider">
+            
+            <div class="sidebar-section-label">System</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="{% url 'index' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-text">
+                <span class="sidebar-footer-signal"></span>System online<br>
+                SafeRoute Admin Panel
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+
+        <div class="page-topbar">
+            <span class="page-topbar-crumb">
+                SafeRoute <span class="page-topbar-crumb-sep">/</span>
+                Admin <span class="page-topbar-crumb-sep">/</span>
+                <span class="page-topbar-crumb-current">Dashboard</span>
+            </span>
+            <a href="{% url 'index' %}" class="topbar-action-btn">
+                Logout <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <main class="main-content">
+
+            <div class="page-heading">
+                <div>
+                    <div class="page-eyebrow">Pending Review</div>
+                    <div class="page-title">Officer Approvals</div>
+                    <div class="page-count">
+                        {% if pending_officers %}
+                            {{ pending_officers|length }} officer{{ pending_officers|length|pluralize }} awaiting verification
+                        {% else %}
+                            Network Sync Active — No pending approvals
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-shell">
+                <div class="table-shell-header">
+                    <div class="table-shell-title">
+                        <span class="sidebar-footer-signal" style="margin-right:0;"></span>
+                        Verification Registry
+                    </div>
+                </div>
+
+                <div style="overflow-x:auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Officer Details</th>
+                                <th>ID Card</th>
+                                <th>Selfie Frame</th>
+                                <th>Liveness Video</th>
+                                <th>Action Panel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for officer in pending_officers %}
+                            <tr>
+                                <td>
+                                    <div class="officer-name">
+                                        <div class="officer-avatar">{{ officer.user.username|first|upper }}</div>
+                                        {{ officer.user.username }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {% if officer.id_card %}
+                                        <button type="button" class="btn-view view-idcard-btn"
+                                            data-bs-toggle="modal" data-bs-target="#sharedIDCardModal"
+                                            data-idcard-src="{{ officer.id_card.url }}">
+                                            <i class="fas fa-id-card"></i> View ID
+                                        </button>
+                                    {% else %}
+                                        <span class="status-pill">No ID Data</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if officer.liveness_frame %}
+                                        <img src="{{ officer.liveness_frame.url }}" alt="Selfie" class="id-card-img preview-img-btn"
+                                            data-bs-toggle="modal" data-bs-target="#sharedImageModal"
+                                            data-image-src="{{ officer.liveness_frame.url }}" title="Click to expand"/>
+                                    {% else %}
+                                        <span class="status-pill">No Image</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if officer.liveness_video %}
+                                        <button type="button" class="btn-view view-video-btn"
+                                            data-bs-toggle="modal" data-bs-target="#sharedVideoModal"
+                                            data-video-src="{{ officer.liveness_video.url }}"
+                                            data-poster="{{ officer.liveness_frame.url }}">
+                                            <i class="fas fa-play-circle"></i> Play Video
+                                        </button>
+                                    {% else %}
+                                        <span class="status-pill">No Video</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <div style="display:flex;gap:12px;align-items:center;">
+                                        <a href="{% url 'approve_police' officer.user.id %}" class="btn-approve">
+                                            <i class="fas fa-check"></i> Verify
+                                        </a>
+                                        <button class="btn-reject disapprove-btn" data-user-id="{{ officer.user.id }}">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-check-circle" style="color: var(--teal);"></i>
+                                        <span>Registry Cleared — All Caught Up</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="modal fade" id="sharedVideoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-video" style="margin-right:8px;"></i> Liveness Video Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <video id="sharedModalVideo" controls preload="metadata" style="max-width:100%; width:100%;">
+                        <source src="" type="video/webm">
+                        Your browser does not support HTML5 video.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="sharedImageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-camera" style="margin-right:8px;"></i> Frame Capture Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalSelfieImage" src="" alt="Selfie Preview" class="img-fluid"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="sharedIDCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-id-card" style="margin-right:8px;"></i> Official ID Scan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalIDCardImage" src="" alt="ID Card" class="img-fluid"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    icon: 'success',
+                    title: 'System Update',
+                    html: '<span style="font-family:\'Space Grotesk\'">{{ message|safe }}</span>',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    confirmButtonColor: '#ff6b35',
+                    background: '#fff9f5',
+                    color: '#1a1a2e'
+                });
+            {% endfor %}
+        {% endif %}
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Disapprove Action
+            document.querySelectorAll('.disapprove-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = btn.dataset.userId;
+                    Swal.fire({
+                        title: 'Reject Officer Verification?',
+                        text: 'This action will permanently remove the application.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f43f5e', // Rose
+                        cancelButtonColor: '#888888', // Muted
+                        confirmButtonText: 'Yes, reject',
+                        background: '#fff9f5',
+                        color: '#1a1a2e'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            fetch(`/disapprove_police/${userId}/`, {
+                                method: 'POST',
+                                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    Swal.fire({title: 'Rejected', text: 'Officer profile has been purged.', icon: 'success', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e'});
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+                                    Swal.fire({title: 'Error', text: data.message, icon: 'error', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e'});
+                                }
+                            })
+                            .catch(() => Swal.fire({title: 'Error', text: 'System failure.', icon: 'error', confirmButtonColor: '#ff6b35', background: '#fff9f5', color: '#1a1a2e'}));
+                        }
+                    });
+                });
+            });
+
+            // Media Modal logic
+            const videoEl = document.getElementById('sharedModalVideo');
+            const videoModalEl = document.getElementById('sharedVideoModal');
+            document.querySelectorAll('.view-video-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    videoEl.pause();
+                    videoEl.setAttribute('poster', btn.dataset.poster);
+                    videoEl.querySelector('source').setAttribute('src', btn.dataset.videoSrc);
+                    videoEl.load();
+                });
+            });
+            if(videoModalEl) videoModalEl.addEventListener('hidden.bs.modal', () => { videoEl.pause(); });
+
+            const selfieEl = document.getElementById('modalSelfieImage');
+            const selfieModalEl = document.getElementById('sharedImageModal');
+            document.querySelectorAll('.preview-img-btn').forEach(btn => {
+                btn.addEventListener('click', () => { selfieEl.src = btn.dataset.imageSrc; });
+            });
+            if(selfieModalEl) selfieModalEl.addEventListener('hidden.bs.modal', () => { selfieEl.src = ''; });
+
+            const idCardEl = document.getElementById('modalIDCardImage');
+            const idCardModalEl = document.getElementById('sharedIDCardModal');
+            document.querySelectorAll('.view-idcard-btn').forEach(btn => {
+                btn.addEventListener('click', () => { idCardEl.src = btn.dataset.idcardSrc; });
+            });
+            if(idCardModalEl) idCardModalEl.addEventListener('hidden.bs.modal', () => { idCardEl.src = ''; });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

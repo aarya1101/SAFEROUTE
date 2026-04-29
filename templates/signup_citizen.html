@@ -1,0 +1,489 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Citizen Sign Up — SafeRoute</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #fff9f5;
+      --white: #ffffff;
+      --ink: #1a1a2e;
+      --ink2: #2d2d4e;
+      --muted: #888888;
+      --border: #ffe4d0;
+      --orange: #ff6b35;
+      --orange-dk: #e85520;
+      --orange-lt: #fff5f0;
+      --teal: #0d9488;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --green: #10b981;
+      --gold-text: #f7c59f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: -1;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 540px;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.04);
+      animation: contentFade 0.38s ease;
+    }
+
+    @keyframes contentFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .logo-square {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+    .logo-text {
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+    }
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      display: grid;
+      place-items: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      transition: all 0.3s;
+      z-index: 2;
+    }
+    .step.active .step-circle {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-lt);
+    }
+    .step.done .step-circle {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: white;
+    }
+    .step-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 8px;
+    }
+    .step-connector {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 22px;
+    }
+    .step-connector.done { background: var(--teal); }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    h2 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      letter-spacing: -1.5px;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .field { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+    }
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .contact-card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .contact-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .remove-btn {
+      position: absolute;
+      top: 15px; right: 15px;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1rem;
+    }
+
+    .add-contact-btn {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-bottom: 24px;
+      transition: all 0.2s;
+    }
+    .add-contact-btn:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-lt);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: var(--ink);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-primary:hover {
+      background: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,107,53,0.35);
+    }
+
+    .btn-outline {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    .strength-bar {
+      height: 4px;
+      background: var(--border);
+      margin-top: 8px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .strength-fill { height: 100%; transition: width 0.3s ease; }
+
+    .val-hint {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.55rem;
+      margin-top: 6px;
+      letter-spacing: 0.5px;
+      display: none;
+    }
+    .val-hint.show { display: block; }
+    .val-hint.error { color: var(--rose); }
+
+    .login-link {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .login-link a { color: var(--orange); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-square">SR</div>
+    <span class="logo-text">SafeRoute</span>
+  </div>
+
+  <div class="stepper">
+    <div class="step done" id="s1">
+      <div class="step-circle" id="sc1">✓</div>
+      <span class="step-label">Account</span>
+    </div>
+    <div class="step-connector done" id="conn1"></div>
+    <div class="step active" id="s2">
+      <div class="step-circle" id="sc2">02</div>
+      <span class="step-label">Contacts</span>
+    </div>
+    <div class="step-connector" id="conn2"></div>
+    <div class="step" id="s3">
+      <div class="step-circle" id="sc3">03</div>
+      <span class="step-label">Ready</span>
+    </div>
+  </div>
+
+  <div class="step-panel active" id="panel1">
+    <h2>Citizen<br>Account</h2>
+    <p class="subtitle">Join the professional safety network for Indian women travelers.</p>
+
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="s1_username" placeholder="e.g. arya_sharma"/>
+      <div class="val-hint" id="hint_username"></div>
+    </div>
+
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="s1_email" placeholder="name@example.com"/>
+      <div class="val-hint" id="hint_email"></div>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="s1_password" placeholder="••••••••"/>
+      <div class="strength-bar"><div class="strength-fill" id="strength_fill"></div></div>
+      <div class="val-hint" id="hint_password"></div>
+    </div>
+
+    <div class="field">
+      <label>Confirm Password</label>
+      <input type="password" id="s1_confirm" placeholder="••••••••"/>
+      <div class="val-hint" id="hint_confirm"></div>
+    </div>
+
+    <button class="btn-primary" onclick="goToStep2()">Continue Step 02</button>
+    <div class="login-link">Already have an account? <a href="{% url 'login' %}">Sign in</a></div>
+  </div>
+
+  <div class="step-panel" id="panel2">
+    <h2>Emergency<br>Contacts</h2>
+    <p class="subtitle">We'll alert these contacts if you trigger SOS. They'll receive your real-time location.</p>
+
+    <div id="contacts_container"></div>
+
+    <button class="add-contact-btn" id="add_btn" onclick="addContact()">＋ Add Contact Card</button>
+    <div class="val-hint show error" id="hint_contacts" style="margin-bottom:1rem; display:none;"></div>
+
+    <button class="btn-primary" onclick="submitForm()">Complete Registration</button>
+    <button class="btn-outline" onclick="goToStep1()">Back to Account</button>
+  </div>
+
+  <div class="step-panel" id="panel3">
+    <div style="text-align:center; padding:2rem 0;">
+      <h2 style="margin-bottom:1rem;">Verified</h2>
+      <p class="subtitle">Your professional profile is ready. You can now access your dashboard and travel safely.</p>
+      <a href="{% url 'login' %}" class="btn-primary" style="text-decoration:none;">Go to Dashboard →</a>
+    </div>
+  </div>
+
+  <form id="real_form" method="POST" action="{% url 'signup_citizen' %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="username" id="f_username"/>
+    <input type="hidden" name="email" id="f_email"/>
+    <input type="hidden" name="password" id="f_password"/>
+    <input type="hidden" name="confirm-password" id="f_confirm"/>
+    <input type="hidden" name="contact_count" id="f_contact_count"/>
+    <div id="contact_fields_container"></div>
+  </form>
+</div>
+
+<script>
+  let contactCount = 0;
+
+  function setStep(n) {
+    document.querySelectorAll('.step-panel').forEach((p, i) => p.classList.toggle('active', i+1 === n));
+    for (let i = 1; i <= 3; i++) {
+      const step = document.getElementById('s'+i);
+      const circle = document.getElementById('sc'+i);
+      step.classList.remove('active', 'done');
+      if (i < n) { step.classList.add('done'); circle.textContent = '✓'; }
+      else if (i === n) { step.classList.add('active'); circle.textContent = '0' + i; }
+      if (i < 3) document.getElementById('conn'+i).classList.toggle('done', i < n);
+    }
+  }
+
+  function goToStep2() { setStep(2); }
+  function goToStep1() { setStep(1); }
+
+  function addContact() {
+    if (contactCount >= 3) return;
+    contactCount++;
+    const container = document.getElementById('contacts_container');
+    const idx = contactCount;
+    const div = document.createElement('div');
+    div.className = 'contact-card';
+    div.id = 'contact_' + idx;
+    div.innerHTML = `
+      <span class="contact-badge">Contact 0${idx}</span>
+      ${idx > 1 ? '<button class="remove-btn" onclick="removeContact('+idx+')">✕</button>' : ''}
+      <div class="field" style="margin-top:12px">
+        <label>Full Name</label>
+        <input type="text" id="c${idx}_name" placeholder="Contact Name"/>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="c${idx}_phone" placeholder="10-digit"/>
+        </div>
+        <div class="field">
+          <label>Relation</label>
+          <select id="c${idx}_rel"><option>Parent</option><option>Friend</option><option>Spouse</option></select>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+    document.getElementById('add_btn').disabled = contactCount >= 3;
+  }
+
+  function removeContact(idx) {
+    document.getElementById('contact_' + idx).remove();
+    contactCount--;
+    document.getElementById('add_btn').disabled = false;
+  }
+
+  /* FIXED SUBMIT LOGIC: Maps dynamic fields to hidden form correctly */
+  function submitForm() {
+    document.getElementById('f_username').value = document.getElementById('s1_username').value;
+    document.getElementById('f_email').value = document.getElementById('s1_email').value;
+    document.getElementById('f_password').value = document.getElementById('s1_password').value;
+    document.getElementById('f_confirm').value = document.getElementById('s1_confirm').value;
+
+    const fieldContainer = document.getElementById('contact_fields_container');
+    fieldContainer.innerHTML = ''; 
+    
+    const visibleContacts = document.querySelectorAll('.contact-card');
+    document.getElementById('f_contact_count').value = visibleContacts.length;
+
+    visibleContacts.forEach((card, index) => {
+        // Extract original index from ID (contact_1 -> 1)
+        const internalId = card.id.split('_')[1];
+        const nameVal = document.getElementById('c' + internalId + '_name').value;
+        const phoneVal = document.getElementById('c' + internalId + '_phone').value;
+        const relVal = document.getElementById('c' + internalId + '_rel').value;
+
+        fieldContainer.innerHTML += '<input type="hidden" name="contact_name_' + index + '" value="' + nameVal + '">';
+        fieldContainer.innerHTML += '<input type="hidden" name="contact_phone_' + index + '" value="' + phoneVal + '">';
+        fieldContainer.innerHTML += '<input type="hidden" name="contact_rel_' + index + '" value="' + relVal + '">';
+    });
+
+    if (visibleContacts.length < 2) {
+        const hint = document.getElementById('hint_contacts');
+        hint.style.display = 'block';
+        hint.textContent = "Please add at least 2 valid emergency contacts.";
+        return;
+    }
+
+    setStep(3);
+    // Submit after a small delay for UI transition
+    setTimeout(() => { document.getElementById('real_form').submit(); }, 600);
+  }
+
+  // Initial setup
+  addContact();
+</script>
+</body>
+</html>

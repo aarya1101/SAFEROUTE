@@ -1,0 +1,17 @@
+# Django core
+django>=4.2,<5.0
+
+# Deepfake detection stack
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+transformers>=4.40.0
+huggingface_hub>=0.22.0
+
+# Image/Video handling
+opencv-python
+pillow
+
+# Utils
+numpy

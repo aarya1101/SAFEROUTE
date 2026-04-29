@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact — SafeRoute</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            /* COLOR PALETTE */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* TYPOGRAPHY */
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 300;
+            font-size: 0.9rem;
+            line-height: 1.75;
+            background: var(--bg);
+            color: var(--ink);
+            overflow-x: hidden;
+        }
+
+        /* ── SCROLLBAR ─────────────────────────── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+
+        /* ── TICKER ────────────────────────────── */
+        .ticker-bar {
+            background: var(--ink); color: var(--gold-text);
+            font-family: var(--font-mono); font-size: 0.6rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            overflow: hidden; white-space: nowrap; padding: 7px 0;
+            position: fixed; top: 0; width: 100%; z-index: 200;
+        }
+        .ticker-inner { display: inline-block; animation: ticker 25s linear infinite; }
+        @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+        /* ── NAVBAR ────────────────────────────── */
+        .navbar {
+            position: fixed; top: 25px; width: 100%; height: 60px; z-index: 150;
+            background: rgba(255,252,248,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 24px;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .nav-logo {
+            width: 32px; height: 32px; background: linear-gradient(135deg, var(--orange), var(--amber));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-size: 0.9rem;
+        }
+        .nav-wordmark {
+            font-family: var(--font-head); font-weight: 700; font-size: 1.2rem;
+            letter-spacing: -1px; color: var(--ink);
+        }
+        .nav-links { display: flex; gap: 0; list-style: none; align-items: stretch; height: 100%; }
+        .nav-links li { display: flex; align-items: center; }
+        .nav-links a {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            text-decoration: none; padding: 0 20px; height: 100%; display: flex;
+            align-items: center; border-left: 1px solid var(--border); transition: all 0.15s ease;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--orange); background: var(--orange-lt); }
+        .nav-actions { display: flex; align-items: center; gap: 16px; height: 100%; border-left: 1px solid var(--border); padding-left: 20px; }
+        
+        .btn-mono {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            text-decoration: none; transition: color 0.15s;
+        }
+        .btn-mono:hover { color: var(--orange); }
+
+        .btn-nav-cta {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; background: var(--ink); color: var(--white);
+            border-radius: 8px; padding: 10px 18px; text-decoration: none;
+            box-shadow: 0 4px 12px rgba(26,26,46,0.15); transition: all 0.2s ease;
+        }
+        .btn-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,26,46,0.25); background: var(--ink2); }
+
+        /* ── PAGE LAYOUT ───────────────────────── */
+        .page-header {
+            padding: 140px 40px 60px; max-width: 1200px; margin: 0 auto;
+            text-align: center; animation: fadeUpIn 0.38s ease forwards;
+        }
+        @keyframes fadeUpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .page-eyebrow {
+            font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--orange);
+            margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .page-eyebrow::before, .page-eyebrow::after { content: ''; width: 24px; height: 2px; background: var(--orange); opacity: 0.5; }
+        .page-title {
+            font-family: var(--font-head); font-size: clamp(2.8rem, 5vw, 4rem); font-weight: 700;
+            color: var(--ink); letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 16px;
+        }
+        .page-sub { font-size: 0.95rem; color: var(--muted); max-width: 500px; margin: 0 auto; }
+
+        /* ── CONTACT GRID (CARDS) ──────────────── */
+        .contact-grid {
+            max-width: 1200px; margin: 0 auto 80px; padding: 0 40px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+        }
+
+        /* FORM CARD */
+        .contact-form-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: 16px; padding: 48px; position: relative;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+            animation: fadeUpIn 0.45s ease forwards;
+        }
+        .card-header-title {
+            font-family: var(--font-head); font-size: 1.8rem; font-weight: 700;
+            color: var(--ink); letter-spacing: -1px; margin-bottom: 32px;
+        }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .field { margin-bottom: 20px; }
+        .field label {
+            display: block; font-family: var(--font-mono); font-size: 0.6rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; font-weight: 700;
+        }
+        .field input, .field select, .field textarea {
+            width: 100%; padding: 12px 16px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 10px;
+            font-family: var(--font-head); font-size: 0.85rem; color: var(--ink);
+            outline: none; transition: all 0.2s ease; appearance: none;
+        }
+        .field input:focus, .field select:focus, .field textarea:focus {
+            border-color: var(--orange); background: var(--white);
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
+        }
+        .field textarea { resize: vertical; min-height: 120px; }
+        .field select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ff6b35' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer;
+        }
+
+        .btn-primary {
+            width: 100%; background: var(--orange); color: var(--white);
+            border: none; border-radius: 10px; font-family: var(--font-mono); font-size: 0.7rem;
+            font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 14px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 6px 20px rgba(255,107,53,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+            transition: all 0.2s ease; margin-top: 12px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px); background: var(--orange-dk);
+            box-shadow: 0 8px 25px rgba(255,107,53,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+        }
+
+        .form-success {
+            display: none; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 10px; padding: 16px 20px; margin-top: 20px; font-family: var(--font-mono);
+            font-size: 0.65rem; letter-spacing: 1px; color: var(--green); text-transform: uppercase; font-weight: 700;
+        }
+
+        /* INFO CARD (DARK SECTION) */
+        .contact-info-card {
+            background: var(--ink); border-radius: 16px; padding: 48px;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            animation: fadeUpIn 0.5s ease forwards;
+        }
+        /* Subtle warm grid on dark background */
+        .contact-info-card::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(247, 197, 159, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(247, 197, 159, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px; pointer-events: none;
+        }
+
+        .info-title {
+            font-family: var(--font-head); font-size: 1.8rem; font-weight: 700;
+            color: var(--white); letter-spacing: -1px; margin-bottom: 32px; position: relative; z-index: 1;
+        }
+
+        .contact-item {
+            display: flex; align-items: flex-start; gap: 20px; padding: 24px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; z-index: 1;
+        }
+        .contact-item:last-child { border-bottom: none; }
+        
+        .contact-item-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(255,107,53,0.1); display: flex; align-items: center; justify-content: center;
+            color: var(--orange); font-size: 1rem; flex-shrink: 0;
+        }
+        .contact-item-label {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--gold-text); margin-bottom: 4px;
+        }
+        .contact-item-value { font-size: 0.9rem; font-weight: 300; color: var(--white); line-height: 1.6; }
+
+        /* ── FAQ SECTION ───────────────────────── */
+        .faq-section {
+            max-width: 900px; margin: 0 auto 100px; padding: 0 40px;
+            animation: fadeUpIn 0.6s ease forwards;
+        }
+        .faq-header { text-align: center; margin-bottom: 40px; }
+        
+        .faq-item {
+            background: var(--white); border: 1.5px solid var(--border); border-radius: 12px;
+            margin-bottom: 16px; overflow: hidden; transition: all 0.2s ease;
+        }
+        .faq-item:hover { border-color: var(--orange); }
+        
+        .faq-question {
+            padding: 20px 24px; font-family: var(--font-head); font-size: 1.05rem; font-weight: 600;
+            color: var(--ink); display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; user-select: none; transition: background 0.2s ease;
+        }
+        .faq-item.open .faq-question { background: var(--bg); border-bottom: 1px solid var(--border); }
+        
+        .faq-icon {
+            width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--orange); transition: transform 0.3s ease, background 0.3s ease;
+        }
+        .faq-item.open .faq-icon { transform: rotate(45deg); background: var(--orange); color: var(--white); border-color: var(--orange); }
+        
+        .faq-answer {
+            padding: 0 24px; font-size: 0.9rem; color: var(--muted); line-height: 1.75;
+            max-height: 0; opacity: 0; transition: all 0.3s ease; overflow: hidden;
+        }
+        .faq-item.open .faq-answer { padding: 24px; max-height: 500px; opacity: 1; }
+
+        /* ── DARK CTA STRIP ────────────────────── */
+        .dark-section {
+            background: var(--ink); padding: 56px 40px; display: grid;
+            grid-template-columns: 1fr auto; align-items: center; border-top: 1px solid var(--border);
+        }
+        .ds-eyebrow {
+            font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--gold-text); margin-bottom: 12px;
+        }
+        .ds-title {
+            font-family: var(--font-head); font-weight: 700; font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--white); letter-spacing: -1px; line-height: 1.1;
+        }
+
+        /* ── FOOTER ────────────────────────────── */
+        .footer {
+            background: var(--bg); border-top: 1px solid var(--border); padding: 32px 40px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer-text {
+            font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 1px;
+            color: var(--muted); text-transform: uppercase;
+        }
+
+        /* ── SOS BUTTON (Replaces Floating Chat) ─ */
+        .sos-btn {
+            position: fixed; bottom: 32px; right: 32px; width: 60px; height: 60px;
+            background: var(--rose); border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; text-decoration: none; z-index: 999;
+            box-shadow: 0 0 0 0 rgba(244,63,94,0.4); animation: pulse-sos 2.5s ease-in-out infinite;
+            transition: transform 0.2s ease;
+        }
+        .sos-btn:hover { transform: scale(1.06); }
+        .sos-text {
+            font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700;
+            color: var(--white); letter-spacing: 1px;
+        }
+        @keyframes pulse-sos {
+            0% { box-shadow: 0 0 0 0 rgba(244,63,94,0.6); }
+            50% { box-shadow: 0 0 14px 10px rgba(244,63,94,0); }
+            100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); }
+        }
+
+        @media (max-width: 900px) {
+            .contact-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .dark-section { grid-template-columns: 1fr; gap: 24px; text-align: center; }
+            .ds-title { margin-bottom: 24px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="ticker-bar">
+    <span class="ticker-inner">
+         &nbsp;&nbsp;|&nbsp;&nbsp; Monitoring verified safe zones &nbsp;&nbsp;|&nbsp;&nbsp;  &nbsp;&nbsp;|&nbsp;&nbsp; Real-time SOS network active &nbsp;&nbsp;|&nbsp;&nbsp; Anonymous reporting available 24/7 &nbsp;&nbsp;|&nbsp;&nbsp; Data-driven safety insights &nbsp;&nbsp;|&nbsp;&nbsp;  &nbsp;&nbsp;|&nbsp;&nbsp; Monitoring verified safe zones &nbsp;&nbsp;|&nbsp;&nbsp; 
+    </span>
+</div>
+
+<header class="navbar">
+    <div class="nav-inner">
+        <a href="{% url 'index' %}" class="nav-brand">
+            <div class="nav-logo"><i class="fas fa-shield-alt"></i></div>
+            <span class="nav-wordmark">SafeRoute</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
+            <li><a href="{% url 'contact' %}" class="active">Contact</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="{% url 'anonymous_report' %}" class="btn-mono"><i class="fas fa-user-secret"></i> Anonymous Report</a>
+            <a href="{% url 'admin_login' %}" class="btn-mono"><i class="fas fa-shield-alt"></i> Admin</a>
+            <a href="{% url 'login' %}" class="btn-nav-cta">Login / Join</a>
+        </div>
+    </div>
+</header>
+
+<section class="page-header">
+    <div class="page-eyebrow">Get In Touch</div>
+    <h1 class="page-title">CONTACT US</h1>
+    <p class="page-sub">Have questions about the platform or need partnership details? Our team is available securely and confidentially.</p>
+</section>
+
+<section class="contact-grid">
+    <div class="contact-form-card">
+        <h2 class="card-header-title">Send a Message</h2>
+        <form id="contact-form" method="POST" action="{% url 'contact' %}">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="field">
+                    <label>First Name</label>
+                    <input type="text" name="first_name" placeholder="Enter first name" required>
+                </div>
+                <div class="field">
+                    <label>Last Name</label>
+                    <input type="text" name="last_name" placeholder="Enter last name" required>
+                </div>
+            </div>
+            <div class="field">
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="you@example.com" required>
+            </div>
+            <div class="field">
+                <label>Subject</label>
+                <select name="subject" required>
+                    <option value="" disabled selected>Select a subject</option>
+                    <option value="General Enquiry">General Enquiry</option>
+                    <option value="Report an Issue">Report an Issue</option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Technical Support">Technical Support</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Message</label>
+                <textarea name="message" placeholder="Write your message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary">
+                Send Message <i class="fas fa-paper-plane"></i>
+            </button>
+            <div class="form-success" id="form-success">
+                <i class="fas fa-check-circle"></i> Message securely transmitted.
+            </div>
+        </form>
+    </div>
+
+    <div class="contact-info-card">
+        <h2 class="info-title">Contact Info</h2>
+        
+        <div class="contact-item">
+            <div class="contact-item-icon"><i class="fas fa-envelope"></i></div>
+            <div>
+                <div class="contact-item-label">Email Support</div>
+                <div class="contact-item-value">support@saferoute.ind<br>partnerships@saferoute.ind</div>
+            </div>
+        </div>
+        <div class="contact-item">
+            <div class="contact-item-icon"><i class="fas fa-phone-alt"></i></div>
+            <div>
+                <div class="contact-item-label">Helpline</div>
+                <div class="contact-item-value">+91 9321556814<br>Available 24/7</div>
+            </div>
+        </div>
+        <div class="contact-item">
+            <div class="contact-item-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+                <div class="contact-item-label">Headquarters</div>
+                <div class="contact-item-value">SafeRoute Operations Centre<br>Navi Mumbai, India</div>
+            </div>
+        </div>
+        <div class="contact-item" style="border-bottom: none;">
+            <div class="contact-item-icon"><i class="fas fa-brain"></i></div>
+            <div>
+                <div class="contact-item-label">AI Assistant</div>
+                <div class="contact-item-value">Instant answers to platform queries via the dashboard portal.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq-section">
+    <div class="faq-header">
+        <div class="page-eyebrow">FAQ</div>
+        <h2 class="card-header-title" style="margin-bottom: 0;">Common Questions</h2>
+    </div>
+
+    <div class="faq-list">
+        <div class="faq-item">
+            <div class="faq-question">Is anonymous reporting truly anonymous? <div class="faq-icon"><i class="fas fa-plus"></i></div></div>
+            <div class="faq-answer">Yes. SafeRoute's anonymous reporting system does not collect any personally identifiable information. No account, no name, no IP logging, and no location data beyond what you voluntarily provide in the report itself.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How does the AI prediction system work? <div class="faq-icon"><i class="fas fa-plus"></i></div></div>
+            <div class="faq-answer">Our models are trained on verified historical records, time-of-day patterns, and environmental factors. The system maps risk zones dynamically, enabling proactive safe route generation for women traveling at any hour.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I register as a law enforcement officer? <div class="faq-icon"><i class="fas fa-plus"></i></div></div>
+            <div class="faq-answer">Officer registration requires secure verification of your badge ID, station assignment, and a liveness video check. Visit the registration page, select "Verified Officer," and complete the identity protocol.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">Who has access to submitted reports? <div class="faq-icon"><i class="fas fa-plus"></i></div></div>
+            <div class="faq-answer">Reports are accessible exclusively to verified law enforcement officers assigned to the relevant zone and platform administrators for moderation. Report data is strictly encrypted and never shared with third parties.</div>
+        </div>
+    </div>
+</section>
+
+<div class="dark-section">
+    <div>
+        <div class="ds-eyebrow">Join the SafeRoute Network</div>
+        <h2 class="ds-title">TRAVEL FREELY.<br>STAY PROTECTED.</h2>
+    </div>
+    <div>
+        <a href="{% url 'choose_pg' %}" class="btn-primary" style="box-shadow: none; padding: 16px 28px; width: auto; margin-top: 0;">
+            Create Account <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<footer class="footer">
+    <span class="footer-text">&copy; 2026 SafeRoute. All rights reserved.</span>
+    <span class="footer-text">Predict · Prevent · Protect</span>
+</footer>
+
+<a href="#" class="sos-btn" title="Emergency SOS">
+    <span class="sos-text">SOS</span>
+</a>
+
+<script>
+    // FAQ Accordion Logic
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.querySelector('.faq-question').addEventListener('click', () => {
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+            if (!isOpen) item.classList.add('open');
+        });
+    });
+
+    // Handle Django Success Message Display
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'success' in message.tags %}
+                document.getElementById('form-success').style.display = 'block';
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</script>
+
+</body>
+</html>

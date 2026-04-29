@@ -1,0 +1,30 @@
+# Core Django
+Django
+djangorestframework
+
+# Task Queue
+celery
+redis
+
+# ML & Data Processing
+pandas
+numpy
+scikit-learn
+prophet
+joblib
+
+# Deep Learning & Transformers
+torch
+torchvision
+torchaudio
+tensorflow
+transformers
+
+# Image/Video Handling
+opencv-python
+Pillow
+
+# Utils
+tqdm
+python-dotenv
+requests

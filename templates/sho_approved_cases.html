@@ -1,0 +1,213 @@
+{% extends "sho(base).html" %}
+
+{% block content %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+        --ink:#0a0a0a;--paper:#f2f0eb;--signal:#e63222;--signal-dk:#b82419;
+        --green:#1a7a3f;--amber:#d97706;--blue:#2563eb;
+        --smoke:#d6d3cc;--dust:#a8a49c;--chalk:#ffffff;
+        --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--display:'Bebas Neue',sans-serif;
+    }
+    * { font-family:var(--sans)!important; }
+
+    /* ── PAGE HEADER ──────────────────────── */
+    .page-header { margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid rgba(10,10,10,0.09); }
+    .page-eyebrow { font-family:var(--mono)!important;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--blue);display:flex;align-items:center;gap:8px;margin-bottom:6px; }
+    .page-eyebrow::before { content:'';width:14px;height:1px;background:var(--blue); }
+    .page-title { font-family:var(--display)!important;font-size:2.4rem;color:var(--ink);letter-spacing:1px;line-height:1; }
+    .page-count { font-family:var(--mono)!important;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--dust);margin-top:6px; }
+
+    /* ── REPORT GRID ──────────────────────── */
+    .report-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px; }
+
+    /* ── REPORT CARD ──────────────────────── */
+    .report-card {
+        background:var(--chalk);border:1px solid rgba(10,10,10,0.09);
+        border-left:3px solid var(--blue);
+        overflow:hidden;
+        animation:cardIn 0.4s ease both;
+        transition:box-shadow 0.2s;
+    }
+    .report-card:hover { box-shadow:4px 4px 0 rgba(10,10,10,0.06);border-color:rgba(10,10,10,0.14); }
+    @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    .report-card-header {
+        background:var(--ink);padding:13px 18px;
+        display:flex;align-items:center;justify-content:space-between;
+    }
+    .report-card-type { font-family:var(--mono)!important;font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--chalk);display:flex;align-items:center;gap:8px; }
+    .report-id-badge { font-family:var(--mono)!important;font-size:0.58rem;letter-spacing:1px;color:#3a3a3a;text-transform:uppercase; }
+
+    .report-card-body { padding:18px; }
+    .report-field { margin-bottom:12px; }
+    .report-field-label { font-family:var(--mono)!important;font-size:0.58rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--dust);margin-bottom:3px; }
+    .report-field-value { font-size:0.875rem;color:var(--ink);line-height:1.5; }
+    .report-field-value.muted { font-weight:300;color:#5a5750; }
+
+    /* Assign form */
+    .assign-section {
+        border-top:1px solid rgba(10,10,10,0.07);
+        padding:16px 18px;
+        background:rgba(10,10,10,0.015);
+    }
+    .assign-label { font-family:var(--mono)!important;font-size:0.58rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--dust);margin-bottom:8px; }
+    .assign-form { display:flex;flex-direction:column;gap:8px; }
+    .select-wrap { position:relative; }
+    .select-wrap::after { content:'\f107';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--dust);font-size:0.7rem;pointer-events:none; }
+    .assign-form select {
+        width:100%;padding:10px 28px 10px 12px;
+        font-family:var(--mono)!important;font-size:0.65rem;letter-spacing:0.5px;
+        background:var(--chalk);border:1.5px solid rgba(10,10,10,0.12);
+        border-radius:0;color:var(--ink);outline:none;appearance:none;cursor:pointer;
+        transition:border-color 0.15s;
+    }
+    .assign-form select:focus { border-color:var(--blue); }
+    .btn-assign {
+        width:100%;padding:11px;background:var(--blue);color:var(--chalk);
+        border:none;border-radius:0;cursor:pointer;
+        font-family:var(--mono)!important;font-size:0.65rem;font-weight:500;
+        letter-spacing:1.5px;text-transform:uppercase;
+        display:flex;align-items:center;justify-content:center;gap:8px;
+        transition:background 0.15s;
+    }
+    .btn-assign:hover { background:#1d4ed8; }
+
+    /* Delete section */
+    .delete-section { padding:12px 18px;border-top:1px solid rgba(10,10,10,0.06); }
+    .btn-delete {
+        width:100%;padding:10px;background:transparent;
+        border:1px solid rgba(230,50,34,0.25);color:var(--signal);
+        border-radius:0;cursor:pointer;
+        font-family:var(--mono)!important;font-size:0.62rem;font-weight:500;
+        letter-spacing:1.2px;text-transform:uppercase;
+        display:flex;align-items:center;justify-content:center;gap:8px;
+        transition:all 0.15s;
+    }
+    .btn-delete:hover { background:var(--signal);color:var(--chalk);border-color:var(--signal); }
+
+    /* Empty state */
+    .empty-state { text-align:center;padding:56px 20px;background:var(--chalk);border:1px solid rgba(10,10,10,0.09); }
+    .empty-state i { font-size:2rem;color:var(--smoke);display:block;margin-bottom:14px; }
+    .empty-state p { font-family:var(--mono)!important;font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--dust); }
+</style>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div class="page-eyebrow">Case Assignment</div>
+    <div class="page-title">Approved Reports</div>
+    <div class="page-count">
+        {% if reports %}{{ reports|length }} report{{ reports|length|pluralize }} awaiting officer assignment{% else %}No reports available{% endif %}
+    </div>
+</div>
+
+<!-- REPORT GRID -->
+{% if reports %}
+<div class="report-grid">
+    {% for report in reports %}
+    <div class="report-card" style="animation-delay:{{ forloop.counter0 }}00ms;">
+
+        <!-- Card header -->
+        <div class="report-card-header">
+            <div class="report-card-type">
+                <i class="fas fa-flag" style="font-size:0.7rem;opacity:0.6;"></i>
+                {{ report.crime_type }}
+            </div>
+            <span class="report-id-badge">#{{ report.id }}</span>
+        </div>
+
+        <!-- Card body -->
+        <div class="report-card-body">
+            <div class="report-field">
+                <div class="report-field-label">Location</div>
+                <div class="report-field-value">{{ report.address }}</div>
+            </div>
+            <div class="report-field">
+                <div class="report-field-label">Description</div>
+                <div class="report-field-value muted">{{ report.description|truncatechars:120 }}</div>
+            </div>
+            <div class="report-field" style="margin-bottom:0;">
+                <div class="report-field-label">Reported At</div>
+                <div class="report-field-value" style="font-family:var(--mono)!important;font-size:0.75rem;color:var(--dust);">{{ report.reported_at }}</div>
+            </div>
+        </div>
+
+        <!-- Assign section -->
+        <div class="assign-section">
+            <div class="assign-label">Assign to Officer</div>
+            <form method="post" class="assign-form">
+                {% csrf_token %}
+                <input type="hidden" name="report_id" value="{{ report.id }}">
+                <div class="select-wrap">
+                    <select name="officer_id" required>
+                        <option value="">Select officer</option>
+                        {% for officer, score in report.scored_officers %}
+                        <option value="{{ officer.id }}">
+                            {{ officer.user.username }} — {{ officer.station_name }} (Score: {{ score }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-assign">
+                    <i class="fas fa-user-check" style="font-size:0.65rem;"></i> Assign Officer
+                </button>
+            </form>
+        </div>
+
+        <!-- Delete -->
+        <div class="delete-section">
+            <button class="btn-delete" onclick="deleteReport({{ report.id }})">
+                <i class="fas fa-trash" style="font-size:0.65rem;"></i> Delete Report
+            </button>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+
+<div class="empty-state">
+    <i class="fas fa-check-circle"></i>
+    <p>No approved reports available for assignment</p>
+</div>
+
+{% endif %}
+
+<script>
+    /* Django messages */
+    {% if messages %}
+    {% for message in messages %}
+    Swal.fire({ icon:'success', title:'Done', html:'{{ message|safe }}', timer:3000, timerProgressBar:true, confirmButtonColor:'#0a0a0a' });
+    {% endfor %}
+    {% endif %}
+
+    /* Delete report */
+    function deleteReport(reportId) {
+        Swal.fire({
+            title:'Delete this report?',
+            text:'This action is permanent and cannot be undone.',
+            icon:'warning',
+            showCancelButton:true,
+            confirmButtonColor:'#e63222',
+            cancelButtonColor:'#0a0a0a',
+            confirmButtonText:'Yes, delete it'
+        }).then(result => {
+            if(result.isConfirmed){
+                fetch(`/delete-crime/${reportId}/`,{
+                    method:'POST',credentials:'same-origin',
+                    headers:{'X-CSRFToken':'{{ csrf_token }}'}
+                })
+                .then(r=>r.json())
+                .then(data=>Swal.fire('Deleted',data.message,'success').then(()=>location.reload()))
+                .catch(()=>Swal.fire('Error','Something went wrong','error'));
+            }
+        });
+    }
+</script>
+
+{% endblock content %}

@@ -1,0 +1,347 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeRoute — City Ratings</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* COLOR PALETTE */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* TYPOGRAPHY RULES */
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-body);
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── HEADER ──────────────────────────────── */
+        .pred-header { padding: 36px 48px 24px; }
+        
+        .pred-eyebrow {
+            font-family: var(--font-mono); 
+            font-size: 0.62rem; 
+            font-weight: 700;
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            color: var(--orange); 
+            margin-bottom: 8px;
+        }
+        
+        .pred-title {
+            font-family: var(--font-head); 
+            font-weight: 700; 
+            font-size: 3.2rem;
+            letter-spacing: -2px; 
+            color: var(--ink); 
+            line-height: 1; 
+            margin-bottom: 12px;
+        }
+        
+        .pred-sub { 
+            font-weight: 300; 
+            font-size: 0.95rem; 
+            color: var(--muted); 
+            max-width: 600px; 
+        }
+
+        /* ── FILTER SECTION ──────────────────────── */
+        .filter-section { padding: 0 48px 30px; }
+        
+        .filter-label {
+            display: block; 
+            font-family: var(--font-mono); 
+            font-size: 0.55rem;
+            color: var(--muted); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 8px;
+        }
+        
+        .district-select {
+            width: 100%; 
+            max-width: 400px; 
+            padding: 14px 18px; 
+            border: 1.5px solid var(--border);
+            border-radius: 12px; 
+            font-family: var(--font-head); 
+            font-size: 0.82rem;
+            background: var(--white); 
+            color: var(--ink); 
+            outline: none; 
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .district-select:focus { 
+            border-color: var(--orange); 
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.1); 
+        }
+
+        /* ── LAYOUT ──────────────────────────────── */
+        .pred-layout {
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 16px;
+            padding: 0 48px 48px; 
+            animation: contentIn 0.38s ease forwards;
+        }
+        
+        @keyframes contentIn { 
+            from { opacity: 0; transform: translateY(8px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* ── CARDS (SHELLS) ───────────────────────── */
+        .result-shell, .chart-shell {
+            background: var(--white); 
+            border: 1.5px solid var(--border);
+            border-radius: 16px; 
+            overflow: hidden; 
+            position: relative; 
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-shell:hover, .chart-shell:hover { 
+            border-color: var(--orange); 
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+        }
+
+        /* Top Accent Bar Animation */
+        .result-shell::after, .chart-shell::after {
+            content: ''; 
+            position: absolute; 
+            top: 0; left: 0; 
+            height: 3px; width: 0;
+            background: var(--orange); 
+            transition: width 0.3s ease;
+        }
+        .result-shell:hover::after, .chart-shell:hover::after { width: 100%; }
+
+        .shell-header {
+            padding: 20px 24px; 
+            border-bottom: 1px solid var(--border);
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            background: var(--white);
+        }
+        
+        .shell-title {
+            font-family: var(--font-mono); 
+            font-size: 0.62rem; 
+            font-weight: 700;
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            color: var(--ink);
+        }
+
+        /* ── DATA ROWS ───────────────────────────── */
+        .data-row {
+            display: grid; 
+            grid-template-columns: 1fr 100px; 
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border); 
+            transition: background 0.15s ease;
+        }
+        
+        .data-row:hover { background: var(--bg); }
+        
+        .data-label { 
+            font-family: var(--font-mono); 
+            font-size: 0.55rem; 
+            color: var(--muted); 
+            text-transform: uppercase; 
+            margin-bottom: 4px; 
+        }
+        
+        .data-value { 
+            font-family: var(--font-head); 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            color: var(--ink); 
+            letter-spacing: -0.5px;
+        }
+        
+        .rating-accent { color: var(--orange); }
+
+        /* ── REVIEW FEED ─────────────────────────── */
+        .review-feed { flex: 1; overflow-y: auto; }
+        
+        /* Custom Scrollbar for Feed */
+        .review-feed::-webkit-scrollbar { width: 6px; }
+        .review-feed::-webkit-scrollbar-track { background: var(--bg); }
+        .review-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .review-feed::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+
+        .review-card { 
+            padding: 24px; 
+            border-bottom: 1px solid var(--border); 
+            transition: background 0.2s; 
+        }
+        
+        .review-card:hover { background: var(--orange-lt); }
+        
+        .review-text { 
+            font-size: 0.9rem; 
+            color: var(--ink2); 
+            line-height: 1.75; 
+            margin-bottom: 16px; 
+            font-style: italic; 
+            font-weight: 300;
+        }
+        
+        .review-user-tag {
+            font-family: var(--font-mono); 
+            font-size: 0.55rem; 
+            font-weight: 700;
+            text-transform: uppercase; 
+            color: var(--muted); 
+            padding-left: 10px; 
+            border-left: 2px solid var(--orange);
+            letter-spacing: 1px;
+        }
+
+        .empty-state {
+            padding: 80px 48px; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            height: 100%;
+        }
+        
+        .empty-state i { 
+            font-size: 3rem; 
+            color: var(--orange); 
+            opacity: 0.15; 
+            margin-bottom: 20px; 
+        }
+        
+        .empty-state p { 
+            font-family: var(--font-head); 
+            font-weight: 500; 
+            color: var(--muted); 
+            max-width: 250px; 
+        }
+    </style>
+</head>
+<body>
+
+    <header class="pred-header">
+        <div class="pred-eyebrow">Community Intelligence</div>
+        <h1 class="pred-title">City Safety Ratings</h1>
+        <p class="pred-sub">Public sentiment and safety reviews based on citizen experiences. This data serves as a real-time pulse for community security.</p>
+    </header>
+
+    <div class="filter-section">
+        <form method="GET">
+            <label class="filter-label">Filter Registry by District</label>
+            <select name="district" class="district-select" onchange="this.form.submit()">
+                <option value="" disabled selected>-- Select a District to view reviews --</option>
+                {% for d in districts %}
+                    <option value="{{ d }}" {% if d == selected_district %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="pred-layout">
+        
+        <section class="result-shell">
+            <div class="shell-header">
+                <i class="fas fa-chart-line" style="color: var(--orange);"></i>
+                <h2 class="shell-title">District Performance Averages</h2>
+            </div>
+            <div class="result-body">
+                {% for item in stats %}
+                <div class="data-row">
+                    <div class="data-cell">
+                        <div class="data-label">Registry District</div>
+                        <div class="data-value">{{ item.district_name }}</div>
+                    </div>
+                    <div class="data-cell" style="text-align: right;">
+                        <div class="data-label">Mean Rating</div>
+                        <div class="data-value rating-accent">{{ item.avg_rating|floatformat:1 }} ★</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>No ratings available in the registry yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="chart-shell">
+            <div class="shell-header">
+                <i class="fas fa-comments" style="color: var(--orange);"></i>
+                <h2 class="shell-title">
+                    {% if selected_district %}Reviews: {{ selected_district }}{% else %}Citizen Feedback Feed{% endif %}
+                </h2>
+            </div>
+            <div class="review-feed">
+                {% if selected_district %}
+                    {% for review in recent_reviews %}
+                    <div class="review-card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <strong style="font-family: var(--font-head); font-size: 0.85rem; color: var(--ink);">{{ review.district_name }}</strong>
+                            <span class="rating-accent" style="font-weight: 700; font-family: var(--font-head);">{{ review.rating }} ★</span>
+                        </div>
+                        <p class="review-text">"{{ review.review_text }}"</p>
+                        <div class="review-user-tag">
+                            — By {{ review.user.username }} on {{ review.created_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <i class="fas fa-comment-slash"></i>
+                        <p>No reviews found for this specific district registry.</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-search-location"></i>
+                        <p>Please select a district to access specific citizen reviews and sentiment analysis.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

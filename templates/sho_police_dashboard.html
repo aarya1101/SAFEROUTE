@@ -1,0 +1,301 @@
+{% extends "sho(base).html" %}
+{% load static %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+        --bg:       #fff9f5;
+        --white:    #ffffff;
+        --ink:      #1a1a2e;
+        --ink2:     #2d2d4e;
+        --muted:    #888888;
+        --border:   #ffe4d0;
+        --orange:   #ff6b35;
+        --orange-dk:#e85520;
+        --orange-lt:#fff5f0;
+        --teal:     #0d9488;
+        --amber:    #f59e0b;
+        --rose:     #f43f5e;
+        --green:    #10b981;
+        --gold-text:#f7c59f;
+    }
+
+    /* ── BASE UI RESET ────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── PAGE HEADER ──────────────────────── */
+    .sho-page-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 36px;
+    }
+    .sho-eyebrow {
+        font-family: 'Space Mono', monospace; font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--orange);
+        margin-bottom: 8px;
+    }
+    .sho-page-title {
+        font-size: 2.8rem; font-weight: 700; letter-spacing: -2px; color: var(--ink); line-height: 1;
+    }
+
+    /* User Pill */
+    .sho-user-pill {
+        display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+        background: var(--white); border: 1.5px solid var(--border); border-radius: 12px;
+        cursor: pointer; transition: 0.2s ease;
+    }
+    .sho-user-pill:hover { transform: translateY(-2px); border-color: var(--orange); }
+    .sho-avatar {
+        width: 38px; height: 38px; border-radius: 10px; overflow: hidden;
+        background: var(--ink); color: var(--gold-text);
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Space Mono', monospace; font-weight: 700;
+    }
+    .sho-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .sho-user-name { font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── STATS ROW ────────────────────────── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--border); margin-bottom: 40px; background: var(--white); }
+    .stat-cell {
+        padding: 24px; border-right: 1px solid var(--border); position: relative; transition: 0.2s;
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-cell:hover { background: var(--bg); }
+    .stat-cell::after {
+        content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+        background: var(--orange); transition: 0.3s;
+    }
+    .stat-cell:hover::after { width: 100%; }
+    
+    .stat-num { font-size: 2.2rem; font-weight: 700; letter-spacing: -1px; color: var(--ink); margin-bottom: 4px; }
+    .stat-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+
+    /* ── CARD COMPONENTS ───────────────────── */
+    .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .sr-card {
+        background: var(--white); border: 1.5px solid var(--border); border-radius: 16px;
+        overflow: hidden; margin-bottom: 24px; transition: 0.3s; position: relative;
+    }
+    .sr-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+    .sr-card-header {
+        padding: 18px 24px; background: var(--ink); display: flex; align-items: center; justify-content: space-between;
+    }
+    .sr-card-title {
+        font-family: 'Space Mono', monospace; font-size: 0.65rem; font-weight: 700;
+        color: var(--gold-text); text-transform: uppercase; letter-spacing: 1.5px;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .live-dot { width: 8px; height: 8px; background: var(--rose); border-radius: 50%; animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+
+    /* ── SOS ITEMS ────────────────────────── */
+    .sos-item {
+        padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+    }
+    .sos-location { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .sos-meta { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+    .tag-sos {
+        background: var(--rose); color: white; padding: 4px 10px; border-radius: 50px;
+        font-family: 'Space Mono', monospace; font-size: 0.55rem; font-weight: 700;
+    }
+
+    /* ── BUTTONS ──────────────────────────── */
+    .btn-sr {
+        font-family: 'Space Mono', monospace; font-size: 0.6rem; font-weight: 700;
+        text-transform: uppercase; padding: 10px 16px; border-radius: 8px; border: none;
+        cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-approve { background: var(--teal); color: white; }
+    .btn-approve:hover { background: #0b7a70; transform: translateY(-1px); }
+    .btn-reject { background: var(--rose); color: white; }
+    .btn-reject:hover { background: #d43550; transform: translateY(-1px); }
+    .btn-view { background: var(--ink); color: white; }
+
+    /* ── SIDEBAR ──────────────────────────── */
+    .profile-sidebar {
+        position: fixed; top: 0; right: -360px; width: 340px; height: 100%;
+        background: var(--ink); color: var(--gold-text); z-index: 500;
+        padding: 40px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .profile-sidebar.open { right: 0; }
+    .ps-close { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; margin-bottom: 30px; }
+    .ps-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+    .ps-value { font-size: 1.1rem; font-weight: 400; margin-bottom: 24px; color: white; }
+
+    @media(max-width: 900px) { .main-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr 1fr; } }
+</style>
+
+<div class="sho-page-header">
+    <div>
+        <div class="sho-eyebrow">Station Command Center</div>
+        <div class="sho-page-title">SHO Dashboard</div>
+    </div>
+    <div class="sho-user-pill" id="userPill">
+        <div class="sho-avatar">
+            {% if request.user.userprofile.profile_image %}
+                <img id="profileImageHome" src="{{ request.user.userprofile.profile_image.url }}" alt="SHO">
+            {% else %}
+                {{ request.user.username|slice:":1"|upper }}
+            {% endif %}
+        </div>
+        <div>
+            <div class="sho-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="sho-user-role" style="font-size: 0.55rem; color: var(--muted); text-transform: uppercase; font-family: 'Space Mono';">SHO Commanding</div>
+        </div>
+        <i class="fas fa-chevron-right" style="font-size:0.6rem; color: var(--border);"></i>
+    </div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-cell">
+        <div class="stat-num">{{ total_officers }}</div>
+        <div class="stat-label">Total Force</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-num" style="color: var(--orange);">{{ active_cases }}</div>
+        <div class="stat-label">Active Investigations</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-num" style="color: var(--rose);">{{ total_sos }}</div>
+        <div class="stat-label">SOS Dispatches</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-num" style="color: var(--teal);">{{ station_resolution_rate }}%</div>
+        <div class="stat-label">Clearance Rate</div>
+    </div>
+</div>
+
+<div class="main-grid">
+    <div>
+        <div class="sr-card">
+            <div class="sr-card-header">
+                <div class="sr-card-title"><span class="live-dot"></span>Active SOS Dispatches</div>
+                <span style="font-family:'Space Mono'; font-size:0.55rem; color: var(--muted);">{{ total_sos }} TOTAL</span>
+            </div>
+            <div class="card-shell-body">
+                <div class="sos-item">
+                    <div>
+                        <div class="sos-location"><i class="fas fa-map-marker-alt" style="color: var(--rose);"></i> Vartak Nagar, Zone 12</div>
+                        <div class="sos-meta">Assigned: Officer PO-156 • 5 min elapsed</div>
+                    </div>
+                    <span class="tag-sos">CRITICAL</span>
+                </div>
+                <div class="sos-item">
+                    <div>
+                        <div class="sos-location"><i class="fas fa-map-marker-alt" style="color: var(--teal);"></i> Majiwada, Zone 8</div>
+                        <div class="sos-meta">Assigned: Officer PO-142 • 25 min elapsed</div>
+                    </div>
+                    <span class="tag-sos" style="background: var(--teal);">RESOLVED</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sr-card">
+            <div class="sr-card-header" style="background: var(--white); border-bottom: 1.5px solid var(--border);">
+                <div class="sr-card-title" style="color: var(--ink);">Officer Workload Registry</div>
+            </div>
+            <div class="card-shell-body" style="padding: 24px;">
+                {% for officer in officers %}
+                <div style="padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700;">{{ officer.name }}</span>
+                        <span style="font-family:'Space Mono'; font-size:0.6rem; color: var(--muted);">RES RATE: {{ officer.resolution_rate }}%</span>
+                    </div>
+                    <div style="height:4px; background:var(--bg); border-radius:2px; margin-top:10px;">
+                        <div style="width:{{ officer.resolution_rate }}%; height:100%; background:var(--orange); border-radius:2px;"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align:center; padding: 40px; color: var(--muted); font-family: 'Space Mono'; font-size: 0.7rem;">NO OFFICERS ASSIGNED</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="sr-card">
+            <div class="sr-card-header">
+                <div class="sr-card-title">Pending Case Reports</div>
+                {% if reports %}<span class="tag-sos" style="background: var(--orange);">{{ reports|length }} NEW</span>{% endif %}
+            </div>
+            <div style="padding: 20px;">
+                {% for report in reports %}
+                <div style="padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+                    <div style="font-family:'Space Mono'; font-size:0.6rem; color: var(--orange); font-weight:700; margin-bottom:4px;">{{ report.crime_type|upper }}</div>
+                    <div style="font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px;">{{ report.description|truncatechars:80 }}</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-sr btn-approve" onclick="approveCrime({{ report.id }})"><i class="fas fa-check"></i></button>
+                        <button class="btn-sr btn-reject" onclick="rejectCrime({{ report.id }})"><i class="fas fa-times"></i></button>
+                        <button class="btn-sr btn-view" style="flex:1;" onclick="viewEvidence({{ report.id }})">View Evidence</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align:center; padding: 30px; color: var(--muted); font-family: 'Space Mono'; font-size: 0.7rem;">STATION CLEAR</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="profile-sidebar" id="profileSidebar">
+    <button class="ps-close" id="profileCloseBtn"><i class="fas fa-times"></i></button>
+    
+    <div id="profileView">
+        <div class="ps-label">Commanding Officer</div>
+        <div class="ps-value">{{ request.user.get_full_name }}</div>
+        
+        <div class="ps-label">Contact Registry</div>
+        <div class="ps-value">{{ request.user.userprofile.contact }}</div>
+        
+        <div class="ps-label">Command Address</div>
+        <div class="ps-value">{{ request.user.userprofile.address }}</div>
+        
+        <button class="btn-sr btn-view" style="width:100%; margin-top:20px; color: var(--orange); border: 1px solid var(--orange);" id="shoEditProfileBtn">Modify Profile</button>
+    </div>
+
+    <div id="profileEdit" style="display:none;">
+        <form id="profileEditForm" enctype="multipart/form-data">
+            <input type="text" id="shoEditFullName" value="{{ request.user.get_full_name }}" style="width:100%; background: var(--ink2); border: 1px solid var(--muted); color: white; padding: 12px; margin-bottom: 20px;">
+            <button type="button" class="btn-sr btn-approve" style="width:100%; margin-bottom:10px;" id="shoSaveProfileBtn">Update Records</button>
+            <button type="button" class="btn-sr btn-reject" style="width:100%;" id="shoCancelProfileBtn">Abort</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    /* ── UI Logic ── */
+    const sidebar = document.getElementById('profileSidebar');
+    document.getElementById('userPill').addEventListener('click', () => sidebar.classList.add('open'));
+    document.getElementById('profileCloseBtn').addEventListener('click', () => sidebar.classList.remove('open'));
+    
+    document.getElementById('shoEditProfileBtn').addEventListener('click', () => {
+        document.getElementById('profileView').style.display = 'none';
+        document.getElementById('profileEdit').style.display = 'block';
+    });
+    
+    document.getElementById('shoCancelProfileBtn').addEventListener('click', () => {
+        document.getElementById('profileEdit').style.display = 'none';
+        document.getElementById('profileView').style.display = 'block';
+    });
+
+    /* ── Action Handlers ── */
+    function getCSRFToken(){const c=document.cookie.split(';').find(r=>r.trim().startsWith('csrftoken='));return c?decodeURIComponent(c.split('=')[1]):'';}
+    
+    function approveCrime(id){
+        fetch(`/approve-crime/${id}/`,{method:'POST',headers:{'X-CSRFToken':getCSRFToken()}})
+        .then(r=>r.json()).then(d=>Swal.fire({title:'APPROVED', text:d.message, icon:'success', confirmButtonColor:'#ff6b35'}).then(()=>location.reload()));
+    }
+
+    function viewEvidence(id){
+        fetch(`/view-evidence/${id}/`).then(r=>r.json()).then(data=>{
+            let html = data.video_url ? `<video width="100%" controls><source src="${data.video_url}"></video>` : '';
+            if(data.photo_urls) data.photo_urls.forEach(u => html += `<img src="${u}" style="width:100%; margin-top:10px;">`);
+            Swal.fire({title:'Evidence Log', html, confirmButtonColor:'#1a1a2e'});
+        });
+    }
+</script>
+{% endblock %}

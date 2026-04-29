@@ -1,0 +1,536 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeRoute — Assign Officer</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* SAFEROUTE COLOR PALETTE */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* SAFEROUTE TYPOGRAPHY */
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Space Grotesk', sans-serif;
+
+            /* LAYOUT VARIABLES */
+            --sidebar-w: 260px;
+            --topbar-h:  60px;
+            --ticker-h:  30px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 300;
+            font-size: 0.9rem;
+            line-height: 1.75;
+            background: var(--bg);
+            color: var(--ink);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── TICKER BAR ────────────────────────── */
+        .ticker-bar {
+            background: var(--ink);
+            color: var(--gold-text);
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 7px 0;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: var(--ticker-h);
+            z-index: 300;
+        }
+        .ticker-inner {
+            display: inline-block;
+            animation: ticker 25s linear infinite;
+        }
+        @keyframes ticker {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ── SIDEBAR ───────────────────────────── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--ink);
+            position: fixed;
+            top: var(--ticker-h);
+            left: 0;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--ink2);
+        }
+
+        .sidebar-brand {
+            height: var(--topbar-h);
+            display: flex; align-items: center; gap: 12px;
+            padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-decoration: none;
+        }
+        .sidebar-logo {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--orange), var(--amber));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-size: 0.9rem;
+        }
+        .sidebar-wordmark {
+            font-family: var(--font-head); font-weight: 700; font-size: 1.2rem;
+            letter-spacing: -1px; color: var(--white);
+        }
+
+        .sidebar-inner {
+            flex: 1; padding: 32px 0 24px; overflow-y: auto;
+        }
+        .sidebar-section-label {
+            font-family: var(--font-mono); font-size: 0.58rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: #4a4a5e; padding: 0 24px 12px;
+        }
+        
+        .sidebar-nav { list-style: none; padding: 0; margin: 0 0 32px; }
+        .sidebar-nav li a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 24px;
+            font-family: var(--font-mono); font-size: 0.7rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--muted); text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar-nav li a i { width: 18px; text-align: center; font-size: 0.85rem; }
+        .sidebar-nav li a:hover {
+            color: var(--white); background: rgba(255,255,255,0.04);
+        }
+        .sidebar-nav li.active a {
+            color: var(--white); background: rgba(255,107,53,0.08);
+            border-left-color: var(--orange);
+        }
+        .sidebar-nav li.active a i { color: var(--orange); }
+        
+        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 8px 24px 24px; }
+        
+        .sidebar-footer { padding: 24px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-footer-text {
+            font-family: var(--font-mono); font-size: 0.6rem;
+            letter-spacing: 1px; color: var(--muted); text-transform: uppercase; line-height: 1.6;
+        }
+        .live-dot {
+            display: inline-block; width: 6px; height: 6px; background: var(--orange);
+            border-radius: 50%; margin-right: 8px; animation: blink 1.8s step-start infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        /* ── MAIN WRAPPER ───────────────────────── */
+        .main-wrapper {
+            margin-left: var(--sidebar-w);
+            padding-top: var(--ticker-h);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── PAGE TOPBAR ────────────────────────── */
+        .page-topbar {
+            height: var(--topbar-h);
+            background: rgba(255,252,248,0.85); /* Glassmorphism */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: var(--ticker-h);
+            z-index: 100;
+        }
+        .page-topbar-crumb {
+            font-family: var(--font-mono); font-size: 0.65rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+        }
+        .page-topbar-crumb-sep { color: var(--border); margin: 0 8px; }
+        .page-topbar-crumb-current { color: var(--ink); font-weight: 700; }
+        
+        .topbar-action-btn {
+            font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            background: none; border: none; text-decoration: none;
+            display: flex; align-items: center; gap: 8px; transition: color 0.2s;
+        }
+        .topbar-action-btn:hover { color: var(--orange); }
+
+        /* ── CONTENT AREA ───────────────────────── */
+        .main-content {
+            flex: 1;
+            padding: 48px;
+            animation: fadeUpIn 0.38s ease forwards;
+        }
+        @keyframes fadeUpIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── BACK LINK ───────────────────────────────── */
+        .back-link {
+            font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+            text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+            margin-bottom: 24px; transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--orange); }
+
+        /* ── PAGE HEADER ─────────────────────────────── */
+        .section-eyebrow {
+            font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--orange);
+            margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+        }
+        .section-eyebrow::before { content: ''; width: 16px; height: 2px; background: var(--orange); }
+        
+        .section-title {
+            font-family: var(--font-head); font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 700;
+            color: var(--ink); letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 32px;
+        }
+        .section-title span { color: var(--muted); font-weight: 400; }
+
+        /* ── OFFICER GRID (SAFEROUTE CARDS) ────────── */
+        .officer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .officer-card-label {
+            display: block; cursor: pointer; position: relative; margin: 0;
+        }
+        .officer-card-label input[type="radio"] { position: absolute; opacity: 0; }
+        
+        .officer-card-inner {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            height: 100%;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Top accent line animation */
+        .officer-card-inner::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            height: 3px; width: 0; background: var(--orange);
+            transition: width 0.3s ease;
+        }
+
+        /* Hover State */
+        .officer-card-label:hover .officer-card-inner {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+            border-color: var(--orange);
+        }
+        .officer-card-label:hover .officer-card-inner::before { width: 100%; }
+
+        /* Checked (Selected) State */
+        .officer-card-label input[type="radio"]:checked ~ .officer-card-inner {
+            border-color: var(--orange);
+            background: var(--orange-lt);
+            box-shadow: 0 8px 24px rgba(255,107,53,0.15);
+        }
+        .officer-card-label input[type="radio"]:checked ~ .officer-card-inner::before { width: 100%; }
+
+        /* Radio Indicator */
+        .officer-select-indicator {
+            position: absolute; top: 24px; right: 24px;
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; background: var(--white);
+        }
+        .officer-select-indicator::after {
+            content: ''; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--orange); opacity: 0; transition: opacity 0.2s ease;
+        }
+        .officer-card-label input[type="radio"]:checked ~ .officer-card-inner .officer-select-indicator {
+            border-color: var(--orange);
+        }
+        .officer-card-label input[type="radio"]:checked ~ .officer-card-inner .officer-select-indicator::after {
+            opacity: 1;
+        }
+
+        /* Card Content */
+        .officer-avatar {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: var(--bg); border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-head); font-weight: 700; color: var(--orange);
+            margin-bottom: 16px; font-size: 1.2rem;
+        }
+        .officer-card-label input[type="radio"]:checked ~ .officer-card-inner .officer-avatar {
+            background: var(--orange); color: var(--white); border-color: var(--orange);
+        }
+
+        .officer-name {
+            font-family: var(--font-head); font-size: 1.1rem; font-weight: 700;
+            color: var(--ink); margin-bottom: 4px; padding-right: 32px;
+        }
+        .officer-location {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; color: var(--muted); text-transform: uppercase;
+            margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* Card Stats Row */
+        .officer-stats {
+            display: flex; gap: 16px; padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .officer-card-label input[type="radio"]:checked ~ .officer-card-inner .officer-stats {
+            border-top-color: rgba(255,107,53,0.2);
+        }
+        .officer-stat { flex: 1; }
+        .officer-stat-label {
+            font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+        }
+        .officer-stat-value {
+            font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; color: var(--ink);
+        }
+        .star-display { display: flex; align-items: center; gap: 2px; }
+        .star-display .star { font-size: 0.8rem; color: #ddd; }
+        .star-display .star.filled { color: var(--amber); }
+
+        /* ── SUBMIT FOOTER ───────────────────────────── */
+        .assign-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: 16px; padding: 24px 32px; box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+            flex-wrap: wrap; gap: 16px;
+        }
+        .assign-hint {
+            font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .assign-hint::before {
+            content: '\f05a'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: var(--orange); font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--orange); color: var(--white); border: none; border-radius: 10px;
+            font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; padding: 14px 28px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 6px 20px rgba(255,107,53,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px); background: var(--orange-dk);
+            box-shadow: 0 8px 25px rgba(255,107,53,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+        }
+
+        /* ── EMPTY STATE ─────────────────────────────── */
+        .empty-state {
+            background: var(--white); border: 1.5px solid var(--border); border-radius: 16px;
+            padding: 72px 40px; text-align: center; box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+        }
+        .empty-state-icon { font-size: 2.5rem; color: var(--border); margin-bottom: 16px; }
+        .empty-state-title {
+            font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; color: var(--ink); margin-bottom: 8px;
+        }
+        .empty-state-sub {
+            font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 1px;
+            text-transform: uppercase; color: var(--muted); font-weight: 700;
+        }
+
+        /* ── MOBILE ──────────────────────────────────── */
+        @media (max-width: 900px) {
+            .sidebar { display: none !important; }
+            .main-wrapper { margin-left: 0; }
+            .main-content { padding: 32px 24px; }
+            .page-topbar { padding: 0 24px; }
+            .assign-footer { flex-direction: column; align-items: flex-start; }
+            .btn-primary { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="ticker-bar">
+    <span class="ticker-inner">
+        LIVE &nbsp;&nbsp;|&nbsp;&nbsp; Secure Admin Portal Access &nbsp;&nbsp;|&nbsp;&nbsp; Network Sync Active &nbsp;&nbsp;|&nbsp;&nbsp; Monitoring verified safe zones &nbsp;&nbsp;|&nbsp;&nbsp; Real-time SOS network active &nbsp;&nbsp;|&nbsp;&nbsp; LIVE &nbsp;&nbsp;|&nbsp;&nbsp; Secure Admin Portal Access &nbsp;&nbsp;|&nbsp;&nbsp; Network Sync Active
+    </span>
+</div>
+
+<nav class="sidebar d-none d-md-flex">
+    <a href="{% url 'index' %}" class="sidebar-brand">
+        <div class="sidebar-logo"><i class="fas fa-shield-alt"></i></div>
+        <span class="sidebar-wordmark">SafeRoute</span>
+    </a>
+
+    <div class="sidebar-inner">
+        <div class="sidebar-section-label">Navigation</div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="{% url 'admin_dashboard' %}">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+            <li class="active">
+                <a href="{% url 'admin_report' %}">
+                    <i class="fas fa-folder-open"></i> Crime Reports
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin_approved_cases' %}">
+                    <i class="fas fa-check-square"></i> Approved Cases
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+        
+        <div class="sidebar-section-label">System</div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="{% url 'index' %}">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-footer-text">
+            <span class="live-dot"></span>System online<br>
+            SafeRoute Admin Panel
+        </div>
+    </div>
+</nav>
+
+<div class="main-wrapper">
+
+    <div class="page-topbar">
+        <div>
+            <span class="page-topbar-crumb">
+                SafeRoute
+                <span class="page-topbar-crumb-sep">/</span>
+                Crime Reports
+                <span class="page-topbar-crumb-sep">/</span>
+                <span class="page-topbar-crumb-current">Assign Officer</span>
+            </span>
+        </div>
+        <div>
+            <a href="{% url 'index' %}" class="topbar-action-btn">
+                Logout <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <main class="main-content">
+
+        <a href="javascript:history.back()" class="back-link">
+            <i class="fas fa-arrow-left"></i> Return to Reports
+        </a>
+
+        <div class="section-eyebrow">Officer Dispatch</div>
+        <h1 class="section-title">Assign Officer <span>— Report #{{ report.id }}</span></h1>
+
+        <form method="POST" id="assignForm">
+            {% csrf_token %}
+
+            {% if officers %}
+            <div class="officer-grid">
+                {% for officer in officers %}
+                <label class="officer-card-label">
+                    <input type="radio" name="officer" value="{{ officer.id }}" required>
+                    <div class="officer-card-inner">
+                        <div class="officer-select-indicator"></div>
+                        
+                        <div class="officer-avatar">
+                            {{ officer.user.username|first|upper }}
+                        </div>
+                        
+                        <div class="officer-name">{{ officer.user.username }}</div>
+                        <div class="officer-location"><i class="fas fa-map-marker-alt" style="color: var(--orange);"></i> {{ officer.location }}</div>
+                        
+                        <div class="officer-stats">
+                            <div class="officer-stat">
+                                <div class="officer-stat-label">Clearance Rating</div>
+                                <div class="officer-stat-value">
+                                    <div class="star-display">
+                                        {% for i in "12345" %}
+                                            <i class="fas fa-star star {% if forloop.counter <= officer.star_rating %}filled{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="officer-stat">
+                                <div class="officer-stat-label">Active Cases</div>
+                                <div class="officer-stat-value">{{ officer.total_ratings }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="assign-footer">
+                <span class="assign-hint">Select an officer from the network grid above to dispatch them to this case.</span>
+                <button type="submit" class="btn-primary">
+                    Confirm Assignment <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-user-shield"></i></div>
+                <div class="empty-state-title">No Officers Available</div>
+                <div class="empty-state-sub">All verified network officers are currently assigned or off-grid.</div>
+            </div>
+            {% endif %}
+
+        </form>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

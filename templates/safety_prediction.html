@@ -1,0 +1,295 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeRoute — Zone Intelligence Terminal</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg: #fff9f5; --white: #ffffff; --ink: #1a1a2e; --ink2: #2d2d4e;
+            --muted: #888888; --border: #ffe4d0; --orange: #ff6b35; --orange-dk: #e85520;
+            --orange-lt: #fff5f0; --teal: #0d9488; --amber: #f59e0b; --rose: #f43f5e;
+            --green: #10b981; --gold-text: #f7c59f;
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg); color: var(--ink); font-family: var(--font-head); overflow-x: hidden; }
+
+        /* ── TICKER BAR ── */
+        .ticker-bar {
+            background: var(--ink); color: var(--gold-text); height: 28px;
+            display: flex; align-items: center; z-index: 1000; position: fixed; top: 0; width: 100%;
+        }
+        .ticker-track {
+            display: flex; white-space: nowrap; animation: ticker 25s linear infinite;
+            font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
+        }
+        @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+        /* ── TERMINAL HEADER ── */
+        .terminal-nav {
+            margin-top: 28px; padding: 15px 40px; background: rgba(255,252,248,0.85);
+            backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .exit-btn {
+            font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+            color: var(--ink); border: 1.5px solid var(--border); padding: 8px 16px;
+            border-radius: 8px; text-decoration: none; transition: 0.2s;
+        }
+        .exit-btn:hover { background: var(--orange-lt); border-color: var(--orange); color: var(--orange); }
+
+        /* ── CONTENT LAYOUT ── */
+        .container { padding: 40px; max-width: 1400px; margin: 0 auto; }
+        .pred-header { margin-bottom: 40px; }
+        .pred-eyebrow { font-family: var(--font-mono); font-size: 0.62rem; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+        .pred-title { font-size: 3.5rem; letter-spacing: -2px; font-weight: 700; line-height: 1; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+
+        /* ── FORM SHELL ── */
+        .form-shell {
+            background: var(--white); border: 1.5px solid var(--border); border-radius: 16px;
+            padding: 32px; position: sticky; top: 100px; transition: 0.3s;
+        }
+        .form-shell:hover { border-color: var(--orange); box-shadow: 0 12px 32px rgba(255, 107, 53, 0.08); }
+        
+        .field-label { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .custom-select {
+            width: 100%; padding: 14px; border-radius: 10px; border: 1.5px solid var(--border);
+            background: var(--bg); font-family: var(--font-head); font-size: 0.9rem; margin-bottom: 24px; outline: none; appearance: none;
+        }
+        .custom-select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
+
+        .btn-predict {
+            width: 100%; padding: 16px; background: var(--orange); color: white; border: none;
+            border-radius: 10px; font-family: var(--font-mono); font-weight: 700; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+        }
+        .btn-predict:hover { transform: translateY(-2px); background: var(--orange-dk); box-shadow: 0 8px 20px rgba(255,107,53,0.3); }
+
+        /* ── RESULT & CHART SHELLS ── */
+        .result-shell, .chart-shell {
+            background: var(--white); border: 1.5px solid var(--border); border-radius: 16px;
+            overflow: hidden; margin-bottom: 20px; animation: resultIn 0.45s ease both;
+        }
+        @keyframes resultIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        
+        .shell-header { padding: 20px 24px; display: flex; align-items: center; gap: 14px; }
+        
+        /* DYNAMIC CLASSES FOR COLOR STATES */
+        .shell-header.bg-safe { background-color: var(--teal) !important; } 
+        .shell-header.bg-unsafe { background-color: var(--rose) !important; } 
+        
+        .shell-header.dark { background: var(--ink); border-bottom: 3px solid var(--teal); }
+
+        .verdict-text { font-weight: 700; font-size: 2rem; color: var(--white); letter-spacing: -1px; }
+        .chart-title { font-family: var(--font-mono); font-size: 0.65rem; color: var(--gold-text); text-transform: uppercase; letter-spacing: 1.5px; }
+
+        .result-meta-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+        .result-meta-cell { padding: 20px 24px; border-right: 1px solid var(--border); }
+        .result-meta-label { font-family: var(--font-mono); font-size: 0.55rem; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+        .result-meta-value { font-weight: 700; font-size: 1.1rem; color: var(--ink); }
+
+        .advisory-box { padding: 20px 24px; font-size: 0.9rem; line-height: 1.8; }
+        
+        /* ADVISORY TINT STATES */
+        .advisory-box.tint-safe { background-color: var(--orange-lt); color: var(--teal); }
+        .advisory-box.tint-unsafe { background-color: #fff5f5; color: var(--rose); } 
+
+        .chart-body { padding: 32px; height: 380px; position: relative; }
+
+        /* ── PROMPT STATE ── */
+        .empty-state {
+            border: 2px dashed var(--border); border-radius: 20px; padding: 100px 40px; text-align: center;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        .prompt-icon { font-size: 2.5rem; color: var(--border); }
+        .prompt-label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+        /* ── SOS & LOADER ── */
+        .sos-btn {
+            position: fixed; bottom: 32px; right: 32px; width: 64px; height: 64px; border-radius: 50%;
+            background: var(--rose); border: none; color: white; font-family: var(--font-mono);
+            font-weight: 700; cursor: pointer; box-shadow: 0 0 0 0 rgba(244,63,94,0.4);
+            animation: pulse-sos 2.5s infinite; z-index: 1000;
+        }
+        @keyframes pulse-sos { 0% { box-shadow: 0 0 0 0 rgba(244,63,94,0.6); } 100% { box-shadow: 0 0 0 20px rgba(244,63,94,0); } }
+
+        #prediction-loader {
+            position: fixed; inset: 0; background: rgba(255,249,245,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--orange); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="ticker-bar">
+        <div class="ticker-track">
+            SafeRoute Predictive Feed Active ◆ Real-time geo-security data synchronization enabled ◆ Analyze risk levels for Indian districts ◆ SOS terminal standby
+        </div>
+    </div>
+
+    <nav class="terminal-nav">
+        <div style="font-family: var(--font-head); font-weight: 700; font-size: 1.1rem;">Safe<span>Route</span> Intelligence</div>
+        <a href="javascript:history.back()" class="exit-btn"><i class="fas fa-terminal"></i> Exit Terminal</a>
+    </nav>
+
+    <div id="prediction-loader">
+        <div class="spinner"></div>
+        <div style="margin-top:20px; font-family:var(--font-mono); font-size:0.7rem; letter-spacing:2px; color:var(--muted); text-transform:uppercase;">Analysing Regional Security...</div>
+    </div>
+
+    <div class="container">
+        <header class="pred-header">
+            <div class="pred-eyebrow">Predictive Intelligence</div>
+            <h1 class="pred-title">Zone Safety Checker</h1>
+        </header>
+
+        <div class="dashboard-grid">
+            <aside class="form-shell">
+                <form method="post" id="prediction-form">
+                    {% csrf_token %}
+                    <div class="form-field">
+                        <label class="field-label">Target District Registry</label>
+                        <select name="district" class="custom-select" required>
+                            <option value="" disabled selected>Select District</option>
+                            {% for district in districts %}
+                                <option value="{{ district }}">{{ district }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label">Threat Vector Profile</label>
+                        <select name="crime_type" class="custom-select" required>
+                            <option value="" disabled selected>Select Crime Category</option>
+                            {% for crime in crime_types %}
+                                <option value="{{ crime }}">{{ crime }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-predict">
+                        <i class="fas fa-shield-alt"></i> Run Safety Analysis
+                    </button>
+                </form>
+            </aside>
+
+            <main class="pred-right">
+                {% if result %}
+                    <div class="result-shell">
+                        <div class="shell-header {% if result == 'UNSAFE' %}bg-unsafe{% else %}bg-safe{% endif %}">
+                            <i class="fas fa-{% if result == 'UNSAFE' %}exclamation-triangle{% else %}check-circle{% endif %}" style="color:white; font-size:1.5rem;"></i>
+                            <div class="verdict-text">{{ result }}</div>
+                        </div>
+                        <div class="result-body">
+                            <div class="result-meta-grid">
+                                <div class="result-meta-cell">
+                                    <div class="result-meta-label">Location</div>
+                                    <div class="result-meta-value">{{ selected_district }}</div>
+                                </div>
+                                <div class="result-meta-cell">
+                                    <div class="result-meta-label">Vector Profile</div>
+                                    <div class="result-meta-value">{{ selected_crime_type }}</div>
+                                </div>
+                            </div>
+                            <div class="advisory-box {% if result == 'UNSAFE' %}tint-unsafe{% else %}tint-safe{% endif %}">
+                                {% if result == 'UNSAFE' %}
+                                    <i class="fas fa-exclamation-circle" style="margin-right:8px;"></i>
+                                    <strong>High Priority Warning:</strong> Risk threshold exceeded. Exercise extreme caution in this region.
+                                {% else %}
+                                    <i class="fas fa-check-circle" style="margin-right:8px;"></i>
+                                    <strong>Secure Rating:</strong> Predictive models indicate favorable security levels. Maintain standard vigilance.
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if trend_data %}
+                    <div class="chart-shell">
+                        <div class="shell-header dark">
+                            <span class="chart-title">Historical Trend Analysis — {{ selected_crime_type }}</span>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <script>
+                        const trend = {{ trend_data|safe }};
+                        const ctx = document.getElementById('trendChart').getContext('2d');
+                        
+                        let gradient = ctx.createLinearGradient(0, 0, 0, 320);
+                        gradient.addColorStop(0, 'rgba(255, 107, 53, 0.15)');
+                        gradient.addColorStop(1, 'rgba(255, 107, 53, 0)');
+
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: trend.years,
+                                datasets: [{
+                                    label: 'Incident Count',
+                                    data: trend.counts,
+                                    borderColor: '#ff6b35',
+                                    backgroundColor: gradient,
+                                    fill: true, tension: 0.35, borderWidth: 3,
+                                    pointBackgroundColor: '#ff6b35',
+                                    pointBorderColor: '#ffffff',
+                                    pointRadius: 5, pointHoverRadius: 7
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                scales: {
+                                    y: { 
+                                        beginAtZero: true,
+                                        grid: { color: 'rgba(10,10,10,0.05)', drawBorder: false },
+                                        ticks: { color: '#888888', font: { family: 'Space Mono', size: 10 }, padding: 8 }
+                                    },
+                                    x: { 
+                                        grid: { display: false },
+                                        ticks: { color: '#888888', font: { family: 'Space Mono', size: 10 } }
+                                    }
+                                },
+                                plugins: { 
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#1a1a2e', titleColor: '#f7c59f',
+                                        bodyColor: '#ffffff', cornerRadius: 8, padding: 12
+                                    }
+                                }
+                            }
+                        });
+                    </script>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-radar prompt-icon"></i>
+                        <div class="prompt-label">Select a district and crime type to generate a safety analysis</div>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+
+    <button class="sos-btn">SOS</button>
+
+    <script>
+        const form = document.getElementById('prediction-form');
+        const loader = document.getElementById('prediction-loader');
+        form.addEventListener('submit', () => loader.style.display = 'flex');
+    </script>
+</body>
+</html>

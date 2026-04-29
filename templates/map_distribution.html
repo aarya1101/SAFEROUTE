@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<style>
+    :root {
+        --ink:    #0a0a0a;
+        --paper:  #f2f0eb;
+        --signal: #e63222;
+        --smoke:  #d6d3cc;
+        --dust:   #a8a49c;
+        --chalk:  #ffffff;
+        --mono: 'IBM Plex Mono', monospace;
+        --sans: 'IBM Plex Sans', sans-serif;
+        --display: 'Bebas Neue', sans-serif;
+    }
+
+    /* ── PAGE HEADER ─────────────────────────── */
+    .map-header {
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(10,10,10,0.09);
+    }
+    .map-eyebrow {
+        font-family: var(--mono); font-size: 0.62rem; letter-spacing: 2px;
+        text-transform: uppercase; color: var(--signal);
+        display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .map-eyebrow::before { content: ''; width: 14px; height: 1px; background: var(--signal); }
+    .map-title {
+        font-family: var(--display); font-size: 2.4rem;
+        color: var(--ink); letter-spacing: 1px; line-height: 1;
+        margin-bottom: 6px;
+    }
+    .map-sub {
+        font-family: var(--mono); font-size: 0.65rem;
+        letter-spacing: 0.8px; color: var(--dust);
+    }
+
+    /* ── MAP SHELL ────────────────────────────── */
+    .map-shell {
+        background: var(--ink);
+        border: 1px solid rgba(10,10,10,0.12);
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* Shell header bar */
+    .map-shell-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 20px;
+        border-bottom: 2px solid var(--signal);
+        background: var(--ink);
+    }
+    .map-shell-title {
+        font-family: var(--mono); font-size: 0.68rem;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--chalk);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .map-live-dot {
+        width: 6px; height: 6px; background: var(--signal);
+        border-radius: 50%; animation: blink 1.4s step-start infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+    .map-shell-meta {
+        font-family: var(--mono); font-size: 0.6rem;
+        letter-spacing: 1px; text-transform: uppercase; color: #3a3a3a;
+    }
+
+    /* Map canvas */
+    .map-canvas {
+        width: 100%;
+        height: 520px;
+        display: block;
+    }
+
+    /* ── LEGEND / INFO STRIP ──────────────────── */
+    .map-info-strip {
+        display: flex; gap: 0;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        background: var(--ink);
+    }
+    .map-info-cell {
+        flex: 1; padding: 14px 20px;
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .map-info-cell:last-child { border-right: none; }
+    .map-info-label {
+        font-family: var(--mono); font-size: 0.58rem;
+        letter-spacing: 1.5px; text-transform: uppercase; color: #3a3a3a;
+        margin-bottom: 3px;
+    }
+    .map-info-value {
+        font-family: var(--display); font-size: 1.3rem;
+        color: var(--chalk); letter-spacing: 0px;
+    }
+    .map-info-value.red { color: var(--signal); }
+</style>
+
+<!-- PAGE HEADER -->
+<div class="map-header">
+    <div class="map-eyebrow">Geospatial Intelligence</div>
+    <div class="map-title">Crime Distribution Map</div>
+    <div class="map-sub">Geospatial severity index — district concentration · Asia region</div>
+</div>
+
+<!-- MAP SHELL -->
+<div class="map-shell">
+
+    <div class="map-shell-header">
+        <div class="map-shell-title">
+            <span class="map-live-dot"></span>
+            Geospatial Severity Map
+        </div>
+        <div class="map-shell-meta">Source: SafetyNet Intelligence Feed</div>
+    </div>
+
+    <div id="map" class="map-canvas"></div>
+
+    <div class="map-info-strip">
+        <div class="map-info-cell">
+            <div class="map-info-label">Scope</div>
+            <div class="map-info-value">Asia</div>
+        </div>
+        <div class="map-info-cell">
+            <div class="map-info-label">Projection</div>
+            <div class="map-info-value">Mercator</div>
+        </div>
+        <div class="map-info-cell">
+            <div class="map-info-label">Index</div>
+            <div class="map-info-value red">Severe Incidents</div>
+        </div>
+        <div class="map-info-cell">
+            <div class="map-info-label">Colorscale</div>
+            <div class="map-info-value">Reds · Reversed</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var mapData = [{
+        type: 'choropleth',
+        locationmode: 'country names',
+        locations: {{ unsafe_labels|safe }},
+        z: {{ unsafe_values|safe }},
+        colorscale: 'Reds',
+        reversescale: true,
+        text: {{ unsafe_labels|safe }}.map((label, i) =>
+            `${label}<br>Severe Incidents: ${JSON.parse('{{ unsafe_values|safe }}')[i]}`
+        ),
+        hovertemplate: '%{text}<extra></extra>',
+        colorbar: {
+            title: { text: 'Severe Incident Index', font: { color: '#a8a49c', size: 11, family: 'IBM Plex Mono' } },
+            bgcolor: 'rgba(0,0,0,0.5)',
+            tickfont: { color: '#a8a49c', size: 10, family: 'IBM Plex Mono' },
+            outlinecolor: 'rgba(255,255,255,0.08)',
+            outlinewidth: 1
+        }
+    }];
+
+    var mapLayout = {
+        title: false,
+        geo: {
+            scope: 'asia',
+            projection: { type: 'mercator' },
+            bgcolor: 'rgba(0,0,0,0)',
+            showocean: true, oceancolor: '#111111',
+            showland: true, landcolor: '#1a1a1a',
+            subunitcolor: '#2a2a2a',
+            countrycolor: '#333333',
+            showframe: false,
+            coastlinecolor: '#2a2a2a',
+            coastlinewidth: 0.5
+        },
+        paper_bgcolor: '#0a0a0a',
+        plot_bgcolor:  '#0a0a0a',
+        margin: { t: 10, b: 10, l: 10, r: 10 },
+        font: { family: 'IBM Plex Mono', color: '#a8a49c' }
+    };
+
+    Plotly.newPlot('map', mapData, mapLayout, {
+        responsive: true,
+        displayModeBar: false
+    });
+</script>
+
+{% endblock content %}

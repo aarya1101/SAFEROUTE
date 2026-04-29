@@ -1,0 +1,325 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeRoute — Case Registry Terminal</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg:        #fff9f5; /* warm off-white [cite: 1] */
+            --white:     #ffffff; /* card background [cite: 2] */
+            --ink:       #1a1a2e; /* primary text/dark sections [cite: 1] */
+            --ink2:      #2d2d4e; /* secondary dark [cite: 3] */
+            --muted:     #888888; /* secondary text [cite: 1] */
+            --border:    #ffe4d0; /* warm borders [cite: 1] */
+            --orange:    #ff6b35; /* primary accent [cite: 4] */
+            --orange-dk: #e85520; /* hover accent [cite: 4] */
+            --orange-lt: #fff5f0; /* tint hover [cite: 4] */
+            --teal:      #0d9488; /* safe zone/secondary accent [cite: 1] */
+            --amber:     #f59e0b; /* warning/caution [cite: 5] */
+            --rose:      #f43f5e; /* danger/SOS [cite: 1] */
+            --green:     #10b981; /* safe indicator [cite: 1] */
+            --gold-text: #f7c59f; /* text on dark backgrounds [cite: 6] */
+
+            --font-head: 'Space Grotesk', sans-serif; /* Headlines [cite: 6] */
+            --font-mono: 'Space Mono', monospace;     /* Data/Labels [cite: 7] */
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-head);
+            line-height: 1.75;
+            padding: 40px;
+        }
+
+        /* ── TERMINAL EXIT POINT ── */
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .exit-btn {
+            font-family: var(--font-mono) !important;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ink);
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .exit-btn:hover {
+            border-color: var(--orange);
+            color: var(--orange);
+            background: var(--orange-lt);
+            transform: translateY(-1px);
+        }
+
+        /* ── PAGE TITLES ── */
+        .page-eyebrow {
+            font-family: var(--font-mono) !important;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--orange);
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-weight: 700;
+            font-size: 2.8rem;
+            letter-spacing: -1.5px;
+            color: var(--ink);
+            line-height: 1.1;
+        }
+
+        /* ── CASE REGISTRY TABLE ── */
+        .table-shell {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.02);
+            animation: fadeUp 0.38s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table-header {
+            background: var(--ink);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            font-family: var(--font-mono) !important;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--gold-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .shell-dot {
+            width: 8px; height: 8px;
+            background: var(--orange);
+            border-radius: 50%;
+            animation: blink 1.8s step-start infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        .search-input {
+            padding: 10px 14px 10px 36px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(247, 197, 159, 0.2);
+            border-radius: 10px;
+            font-family: var(--font-head);
+            font-size: 0.82rem;
+            color: var(--white);
+            outline: none;
+            width: 240px;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--orange);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+        }
+
+        /* ── DATA TABLE ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: var(--bg);
+            font-family: var(--font-mono) !important;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 18px 24px;
+            font-size: 0.85rem;
+            color: var(--ink);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover { background: var(--bg); }
+
+        .td-id {
+            font-family: var(--font-mono) !important;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        /* ── PILLS & BADGES ── */
+        .pill {
+            font-family: var(--font-mono) !important;
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+
+        .pill.danger { border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.06); color: var(--rose); }
+        .pill.warning { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); color: var(--amber); }
+        .pill.success { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); color: var(--green); }
+
+        .table-footer {
+            padding: 16px 24px;
+            background: var(--bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-text {
+            font-family: var(--font-mono) !important;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--ink);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="terminal-header">
+        <div>
+            <div class="page-eyebrow">Terminal View</div>
+            <h1 class="page-title">Case Management Registry</h1>
+        </div>
+        <a href="javascript:history.back()" class="exit-btn">
+            <i class="fas fa-terminal"></i>
+            Exit Terminal
+        </a>
+    </header>
+
+    <div class="table-shell">
+        <div class="table-header">
+            <div class="header-title">
+                <span class="shell-dot"></span>
+                Secure Operational Feed
+            </div>
+            <div style="position: relative;">
+                <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.4); font-size:0.75rem;"></i>
+                <input type="text" id="terminalSearch" class="search-input" placeholder="Search operational data...">
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="data-table" id="terminalTable">
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Incident Type</th>
+                        <th>Status</th>
+                        <th>Location Registry</th>
+                        <th>Assigned Unit</th>
+                    </tr>
+                </thead>
+                <tbody id="terminalBody">
+                    {% if reports %}
+                        {% for report in reports %}
+                        <tr>
+                            <td class="td-id">#{{ report.id }}</td>
+                            <td>
+                                <span class="pill {% if report.crime_type|lower == 'murder' or report.crime_type|lower == 'rape' %}danger{% elif report.crime_type|lower == 'harassment' %}warning{% else %}success{% endif %}">
+                                    {{ report.crime_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="pill {% if report.status == 'Assigned' %}success{% elif report.status == 'Pending' %}warning{% else %}warning{% endif %}">
+                                    <i class="fas fa-circle" style="font-size:0.4rem; margin-right:5px;"></i>
+                                    {{ report.status }}
+                                </span>
+                            </td>
+                            <td style="color: var(--ink);"><i class="fas fa-map-marker-alt" style="color:var(--orange); margin-right:8px;"></i>{{ report.address }}</td>
+                            <td style="font-family:var(--font-mono) !important; font-size:0.65rem; font-weight:700;">
+                                {% if report.assigned_officer %}
+                                    UNIT: {{ report.assigned_officer.user.username|upper }}
+                                {% else %}
+                                    <span style="color:var(--muted); font-weight:400;">AWAITING UNIT</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 72px 0; color: var(--muted); font-family: var(--font-mono) !important; font-size: 0.65rem; text-transform: uppercase;">
+                                No Active Cases in Operational Buffer
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-footer">
+            <span class="footer-text">Registry Sync Active</span>
+            <span class="footer-text" style="color:var(--muted); font-weight:400;">Records: {{ reports|length }}</span>
+        </div>
+    </div>
+
+    <script>
+        /* Standalone Terminal Search Logic */
+        const searchInput = document.getElementById('terminalSearch');
+        const tableBody = document.getElementById('terminalBody');
+        
+        if (searchInput && tableBody) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                const rows = tableBody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const content = row.textContent.toLowerCase();
+                    row.style.display = content.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeRoute — Choose Account Type</title>
+    {% load static %}
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            /* SAFEROUTE COLOR PALETTE */
+            --bg:        #fff9f5;
+            --white:     #ffffff;
+            --ink:       #1a1a2e;
+            --ink2:      #2d2d4e;
+            --muted:     #888888;
+            --border:    #ffe4d0;
+            --orange:    #ff6b35;
+            --orange-dk: #e85520;
+            --orange-lt: #fff5f0;
+            --teal:      #0d9488;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --green:     #10b981;
+            --gold-text: #f7c59f;
+
+            /* TYPOGRAPHY */
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 300;
+            font-size: 0.9rem;
+            line-height: 1.75;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ── TICKER BAR ────────────────────────── */
+        .ticker-bar {
+            background: var(--ink);
+            color: var(--gold-text);
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 7px 0;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 200;
+        }
+        .ticker-inner {
+            display: inline-block;
+            animation: ticker 25s linear infinite;
+        }
+        @keyframes ticker {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ── NAVBAR ────────────────────────────── */
+        .navbar {
+            position: fixed;
+            top: 25px; /* height of ticker */
+            width: 100%;
+            height: 60px;
+            z-index: 150;
+            background: rgba(255,252,248,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-brand {
+            display: flex; align-items: center; gap: 12px; text-decoration: none;
+        }
+        .nav-logo {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--orange), var(--amber));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-size: 0.9rem;
+        }
+        .nav-wordmark {
+            font-family: var(--font-head); font-weight: 700; font-size: 1.2rem;
+            letter-spacing: -1px; color: var(--ink);
+        }
+        .nav-actions { display: flex; align-items: center; height: 100%; }
+        .btn-mono {
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+            text-decoration: none; transition: color 0.15s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-mono:hover { color: var(--orange); }
+
+        /* ── PAGE LAYOUT ───────────────────────── */
+        .main-container {
+            flex: 1;
+            padding: 120px 40px 60px; /* Accounts for fixed nav/ticker */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            animation: fadeUpIn 0.38s ease forwards;
+        }
+        @keyframes fadeUpIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .page-eyebrow {
+            font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--orange);
+            margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .page-eyebrow::before, .page-eyebrow::after {
+            content: ''; width: 24px; height: 2px; background: var(--orange); opacity: 0.5;
+        }
+        .page-title {
+            font-family: var(--font-head); font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 700;
+            color: var(--ink); letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 16px;
+        }
+        .page-sub {
+            font-size: 0.95rem; color: var(--muted); max-width: 500px; margin: 0 auto;
+        }
+
+        /* ── ROLE CARDS ────────────────────────── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .role-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 32px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* SafeRoute Custom Accent Line */
+        .role-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            height: 3px; width: 0; background: var(--card-accent);
+            transition: width 0.3s ease;
+        }
+
+        .role-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+            border-color: var(--card-accent);
+        }
+        .role-card:hover::before { width: 100%; }
+
+        .card-icon-wrap {
+            width: 48px; height: 48px; border-radius: 12px;
+            background: var(--icon-bg); color: var(--card-accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; margin-bottom: 24px;
+        }
+
+        .card-tag {
+            font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--card-accent);
+            margin-bottom: 8px; display: block;
+        }
+
+        .card-title {
+            font-family: var(--font-head); font-size: 1.8rem; font-weight: 700;
+            color: var(--ink); letter-spacing: -1px; line-height: 1.1; margin-bottom: 12px;
+        }
+
+        .card-desc {
+            font-size: 0.85rem; color: var(--muted); margin-bottom: 32px; flex-grow: 1;
+        }
+
+        .perks-list { list-style: none; padding: 0; margin-bottom: 32px; }
+        .perks-list li {
+            font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.5px;
+            color: var(--muted); margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;
+        }
+        .perks-list li i { color: var(--card-accent); font-size: 0.7rem; margin-top: 2px; }
+
+        .card-btn {
+            font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 12px 20px; border-radius: 10px; border: 1.5px solid var(--border);
+            background: var(--bg); color: var(--ink);
+            display: flex; align-items: center; justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        .role-card:hover .card-btn {
+            background: var(--card-accent); color: var(--white); border-color: var(--card-accent);
+            box-shadow: 0 6px 20px var(--shadow-color), 0 1px 0 rgba(255,255,255,0.2) inset;
+        }
+
+        /* ── FOOTER ────────────────────────────── */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding: 32px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+        }
+        .footer-text {
+            font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 1px;
+            color: var(--muted); text-transform: uppercase;
+        }
+
+        /* ── TOAST ─────────────────────────────── */
+        .toast {
+            position: fixed; top: 90px; left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--white); border: 1.5px solid var(--green);
+            border-left: 4px solid var(--green); border-radius: 12px;
+            padding: 14px 24px; font-family: var(--font-mono); font-size: 0.65rem;
+            letter-spacing: 1px; color: var(--ink); text-transform: uppercase;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+            z-index: 9999; display: flex; align-items: center; gap: 12px;
+            opacity: 0; pointer-events: none; transition: all 0.38s ease; min-width: 300px;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+        .toast i { font-size: 1rem; color: var(--green); }
+
+        /* ── RESPONSIVE ────────────────────────── */
+        @media (max-width: 800px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .nav-inner, .main-container, .footer { padding-left: 24px; padding-right: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="ticker-bar">
+        <span class="ticker-inner">
+            LIVE &nbsp;&nbsp;|&nbsp;&nbsp; Monitoring verified safe zones &nbsp;&nbsp;|&nbsp;&nbsp; AI-assisted route analysis &nbsp;&nbsp;|&nbsp;&nbsp; Real-time SOS network active &nbsp;&nbsp;|&nbsp;&nbsp; Network sync secure
+        </span>
+    </div>
+
+    <header class="navbar">
+        <div class="nav-inner">
+            <a href="{% url 'index' %}" class="nav-brand">
+                <div class="nav-logo"><i class="fas fa-shield-alt"></i></div>
+                <span class="nav-wordmark">SafeRoute</span>
+            </a>
+            <div class="nav-actions">
+                <a href="{% url 'login' %}" class="btn-mono">
+                    <i class="fas fa-arrow-left"></i> Back to Login
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="header-section">
+            <div class="page-eyebrow">Network Access</div>
+            <h1 class="page-title">Choose Account Type</h1>
+            <p class="page-sub">Select your primary role to access the correct dashboard, routing intelligence, and security tools.</p>
+        </div>
+
+        <form method="POST" id="roleForm" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="role" id="roleInput">
+        </form>
+
+        <div class="cards-grid">
+            
+            <div class="role-card" 
+                 style="--card-accent: var(--orange); --icon-bg: rgba(255,107,53,0.1); --shadow-color: rgba(255,107,53,0.35);" 
+                 onclick="submitRole('citizen')">
+                <div class="card-icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
+                <span class="card-tag">Public Member</span>
+                <h2 class="card-title">Traveler / Citizen</h2>
+                <p class="card-desc">For women travelers and members of the public. Access verified safe zones, predictive AI routing, and the real-time SOS broadcast network.</p>
+                
+                <ul class="perks-list">
+                    <li><i class="fas fa-check"></i> Generate AI-assisted safe routes</li>
+                    <li><i class="fas fa-check"></i> File & track incident reports</li>
+                    <li><i class="fas fa-check"></i> Check area safety scores instantly</li>
+                    <li><i class="fas fa-check"></i> Trigger real-time emergency SOS</li>
+                </ul>
+
+                <div class="card-btn">
+                    Register as Traveler <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <div class="role-card" 
+                 style="--card-accent: var(--teal); --icon-bg: rgba(13,148,136,0.1); --shadow-color: rgba(13,148,136,0.35);" 
+                 onclick="submitRole('police')">
+                <div class="card-icon-wrap"><i class="fas fa-user-shield"></i></div>
+                <span class="card-tag">Law Enforcement</span>
+                <h2 class="card-title">Verified Officer</h2>
+                <p class="card-desc">For active law enforcement personnel. Monitor incoming SOS alerts, manage assigned cases, and update safe zone verification statuses.</p>
+                
+                <ul class="perks-list">
+                    <li><i class="fas fa-check"></i> Live dispatch & case management</li>
+                    <li><i class="fas fa-check"></i> Monitor regional crime analytics</li>
+                    <li><i class="fas fa-check"></i> Verify safe zones & route data</li>
+                    <li><i class="fas fa-check"></i> Strict ID verification required</li>
+                </ul>
+
+                <div class="card-btn">
+                    Apply as Officer <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+        <span class="footer-text">&copy; 2026 SafeRoute. All rights reserved.</span>
+        <a href="{% url 'index' %}" class="footer-text" style="text-decoration: none; transition: color 0.2s;">Return Home</a>
+    </footer>
+
+    <script>
+        // Form submission mapping
+        function submitRole(role) {
+            document.getElementById('roleInput').value = role;
+            document.getElementById('roleForm').submit();
+        }
+
+        // Django Messages to SafeRoute Toast
+        const successMessage = "{{ success_message|default:'' }}";
+        if (successMessage && successMessage !== 'None') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> <span>${successMessage}</span>`;
+            setTimeout(() => toast.classList.add('show'), 150);
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+    </script>
+</body>
+</html>
